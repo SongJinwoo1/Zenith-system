@@ -1,0 +1,50 @@
+<div style="width: 100%; display: flex; align-items: center; color: #444; font-size: 10px;">
+                    <span style="flex:1; border-bottom: 1px solid rgba(255,255,255,0.05); margin-left:10px"></span>
+                    SECURE LOGIN
+                    <span style="flex:1; border-bottom: 1px solid rgba(255,255,255,0.05); margin-right:10px"></span>
+                </div>
+                <div id="g_id_onload" data-client_id="1050312471560-1aqdk5bdn9fah2mhkh7t2kb457amon7m.apps.googleusercontent.com" data-callback="onSignIn"></div>
+                <div class="g_id_signin" data-type="standard" data-theme="dark" data-shape="pill"></div>
+            </div>
+        </div>
+        <div class="side"><span class="z-logo">Z</span><p style="color:#fff; font-size:11px; letter-spacing:5px; opacity:0.6;">ZENITH SYSTEM</p></div>
+    </div>
+
+<script>
+    function onSignIn(r) { console.log("Success"); }
+
+    const cvs = document.getElementById('p'), ctx = cvs.getContext('2d');
+    let dots = [];
+    function init() {
+        cvs.width = window.innerWidth; cvs.height = window.innerHeight;
+        dots = [];
+        let count = (cvs.width * cvs.height) / 9500;
+        for(let i=0; i<Math.min(count, 130); i++) {
+            dots.push({
+                x: Math.random()*cvs.width, y: Math.random()*cvs.height,
+                vx: (Math.random()-0.5)*0.4, vy: (Math.random()-0.5)*0.4,
+                c: Math.random() > 0.5 ? '#00f2ff' : '#bc47ff'
+            });
+        }
+    }
+
+    function render() {
+        ctx.clearRect(0,0,cvs.width, cvs.height);
+        dots.forEach((d, i) => {
+            d.x += d.vx; d.y += d.vy;
+            if(d.x<0d.x>cvs.width) d.vx*=-1; if(d.y<0d.y>cvs.height) d.vy*=-1;
+            ctx.fillStyle = d.c; ctx.beginPath(); ctx.arc(d.x, d.y, 1.5, 0, 7); ctx.fill();
+            for(let j=i+1; j<dots.length; j++) {
+                let d2 = dots[j], dist = Math.hypot(d.x-d2.x, d.y-d2.y);
+                if(dist < 110) {
+                    ctx.strokeStyle = rgba(0,242,255,${1 - dist/110});
+                    ctx.lineWidth = 0.5; ctx.beginPath(); ctx.moveTo(d.x, d.y); ctx.lineTo(d2.x, d2.y); ctx.stroke();
+                }
+            }
+        });
+        requestAnimationFrame(render);
+    }
+    window.addEventListener('resize', init); init(); render();
+</script>
+</body>
+</html>
