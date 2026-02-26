@@ -15,7 +15,7 @@
     <div class="panel">
         <div class="side">
             <div class="logo-box">
-                <span>Z</span>
+                <span style="color: #00f2ff; font-size: 40px; font-weight: 900;">Z</span>
             </div>
         </div>
 
@@ -29,17 +29,17 @@
 
             <button class="btn-main" id="loginBtn">LOGIN SYSTEM</button>
             
-            <div class="separator">OR</div>
+            <div class="separator" style="margin: 15px 0; color: rgba(255,255,255,0.3); font-size: 10px; letter-spacing: 2px;">OR</div>
 
             <button class="google-btn" id="googleLoginBtn">
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G" width="20">
                 CONTINUE WITH GOOGLE
             </button>
         </div>
 
         <div class="side">
             <span class="z-logo">Z</span>
-            <p class="sub-text">GLOBAL OS</p>
+            <p class="sub-text" style="color:#fff; font-size:11px; letter-spacing:5px; opacity:0.6;">GLOBAL OS</p>
         </div>
     </div>
 
@@ -47,8 +47,15 @@
     <script src="login-particles.js"></script>
 
     <script>
-        // تفعيل الأيقونات إذا تم استخدامها
+        // تفعيل الأيقونات
         lucide.createIcons();
+        
+        // ربط زر جوجل بالوظيفة البرمجية (تأكد أن login-core.js يحتوي على التوجيه لـ Index.html)
+        document.getElementById('googleLoginBtn').addEventListener('click', () => {
+            if (window.loginWithGoogle) {
+                window.loginWithGoogle();
+            }
+        });
     </script>
 </body>
 </html>
