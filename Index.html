@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>Zenith OS | Dashboard</title>
+    <link rel="stylesheet" href="main-style.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <canvas id="system-bg"></canvas>
+    <header>
+        <div class="status-group"><div class="pulse-dot"></div><span>ZENITH ACTIVE</span></div>
+        <div class="logo">ZENITH OS</div>
+        <div class="user-profile"><span id="uName">KING</span><img src="" id="uPic" class="avatar"></div>
+    </header>
+    <main>
+        <section class="dynamic-banner">
+            <div class="banner-bg" id="bImg"></div>
+            <div class="banner-overlay">
+                <div class="banner-info">
+                    <span class="tag" id="bTag">SYSTEM READY</span>
+                    <h1 id="bTitle">WELCOME KING</h1>
+                    <p id="bDesc">Select a module to interface with the global core...</p>
+                </div>
+            </div>
+        </section>
+        <div class="app-grid" id="appGrid"></div>
+    </main>
+    <script type="module" src="auth-guard.js"></script>
+    <script type="module" src="main-runtime.js"></script>
+    <script src="system-bg.js"></script>
+    <script>lucide.createIcons();</script>
+</body>
+</html>
