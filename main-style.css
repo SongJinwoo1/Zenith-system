@@ -1,0 +1,186 @@
+/* إعدادات الألوان المتطورة لنظام Zenith */
+:root {
+    --neon: #00f2ff;
+    --purple: #bc47ff;
+    --dark: #020205;
+    --glass: rgba(255, 255, 255, 0.02);
+    --border: rgba(0, 242, 255, 0.1);
+}
+
+/* التنسيق الأساسي */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Roboto, Helvetica, sans-serif;
+}
+
+body {
+    background: var(--dark);
+    color: #fff;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* خلفية النظام (Canvas) */
+#system-bg {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+}
+
+/* شريط العلوى (Header) */
+header {
+    height: 70px;
+    padding: 0 4%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+}
+
+.status-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--neon);
+}
+
+.pulse-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--neon);
+    border-radius: 50%;
+    box-shadow: 0 0 10px var(--neon);
+    animation: pulse 1.5s infinite;
+}
+
+.user-profile {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.avatar {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    border: 1px solid var(--neon);
+    object-fit: cover;
+}
+
+/* المستطيل السينمائي (Banner) */
+.dynamic-banner {
+    width: 92%;
+    max-width: 1200px;
+    height: 350px;
+    margin: 30px auto;
+    border-radius: 30px;
+    overflow: hidden;
+    position: relative;
+    border: 1px solid var(--border);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+}
+
+.banner-bg {
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    transition: 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+    filter: brightness(0.6) saturate(1.2);
+}
+
+.banner-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to right, var(--dark) 25%, transparent 80%);
+    display: flex;
+    align-items: center;
+    padding: 0 60px;
+}
+
+.banner-info {
+    max-width: 500px;
+}
+
+.tag {
+    display: inline-block;
+    padding: 5px 15px;
+    background: rgba(0, 242, 255, 0.1);
+    color: var(--neon);
+    border-radius: 50px;
+    font-size: 10px;
+    letter-spacing: 2px;
+    margin-bottom: 15px;
+    border: 1px solid var(--border);
+}
+
+h1 {
+    font-size: 2.5rem;
+    margin-bottom: 15px;
+    font-weight: 800;
+    letter-spacing: -1px;
+}
+
+/* شبكة الأدوات (Grid) */
+.app-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 25px;
+    width: 92%;
+    max-width: 1200px;
+    margin: 40px auto;
+    padding-bottom: 50px;
+}
+
+.app-card {
+    background: var(--glass);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 22px;
+    padding: 25px 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    cursor: pointer;
+    transition: 0.4s;
+}
+
+.app-card:hover {
+    border-color: var(--neon);
+    background: rgba(0, 242, 255, 0.04);
+    transform: translateY(-8px);
+    box-shadow: 0 10px 30px rgba(0, 242, 255, 0.1);
+}
+
+.app-card i {
+    color: var(--neon);
+    width: 32px;
+    height: 32px;
+}
+
+.app-card span {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    opacity: 0.7;
+}
+
+/* الأنميشن */
+@keyframes pulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.5); opacity: 0.4; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* التجاوب (Redmi & Mobile) */
+@media (max-width: 768px) {
+    .banner-overlay { padding: 0 30px; }
+    h1 { font-size: 1.8rem; }
+    .dynamic-banner { height: 280px; }
+}
