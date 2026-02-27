@@ -12,7 +12,11 @@
     <header>
         <div class="status-group"><div class="pulse-dot"></div><span>ZENITH ACTIVE</span></div>
         <div class="logo">ZENITH OS</div>
-        <div class="user-profile"><span id="uName">KING</span><img src="" id="uPic" class="avatar"></div>
+        <div class="user-profile">
+            <span id="uName">LOADING...</span>
+            <img src="https://via.placeholder.com/40" id="uPic" class="avatar" alt="Profile">
+            <button onclick="logout()" style="background:transparent; border:1px solid #ff4747; color:#ff4747; cursor:pointer; margin-left:10px; border-radius:5px; font-size:10px; padding:2px 5px;">EXIT</button>
+        </div>
     </header>
     <main>
         <section class="dynamic-banner">
@@ -20,14 +24,48 @@
             <div class="banner-overlay">
                 <div class="banner-info">
                     <span class="tag" id="bTag">SYSTEM READY</span>
-                    <h1 id="bTitle">WELCOME KING</h1>
+                    <h1 id="bTitle">WELCOME BACK</h1>
                     <p id="bDesc">Select a module to interface with the global core...</p>
                 </div>
             </div>
         </section>
         <div class="app-grid" id="appGrid"></div>
     </main>
-    <script type="module" src="auth-guard.js"></script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyC-Vfw10y-xcUL-U-DGhDgoi4oUjlNbpXg",
+            authDomain: "zenith-c26ae.firebaseapp.com",
+            projectId: "zenith-c26ae",
+            storageBucket: "zenith-c26ae.firebasestorage.app",
+            messagingSenderId: "146416524485",
+            appId: "1:146416524485:web:8aad935153f17f244924ac"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        // وظيفة جلب بيانات الملك
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                document.getElementById('uName').innerText = user.displayName || user.email.split('@')[0];
+                if(user.photoURL) document.getElementById('uPic').src = user.photoURL;
+                document.getElementById('bTitle').innerText = "WELCOME, " + (user.displayName || "KING");
+            } else {
+                // إذا حاول شخص الدخول بدون حساب، نطرده للـ index
+                window.location.href = "index.html";
+            }
+        });
+
+        // وظيفة تسجيل الخروج
+        window.logout = () => {
+            signOut(auth).then(() => { window.location.href = "index.html"; });
+        };
+    </script>
+
     <script type="module" src="main-runtime.js"></script>
     <script src="system-bg.js"></script>
     <script>lucide.createIcons();</script>
