@@ -3,75 +3,100 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <title>Zenith OS | Global Platform</title>
+    <title>Zenith OS | Global Interface</title>
     <link rel="stylesheet" href="main-style.css">
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        /* كود مضغوط ومحسن للسرعة القصوى */
-        #system-bg{position:fixed;top:0;left:0;z-index:-1;background:#020205;width:100%;height:100%;will-change:transform}
-        .guide-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.9);backdrop-filter:blur(15px);z-index:3000;display:flex;justify-content:center;align-items:center;transition:.5s;opacity:1;visibility:visible}
-        .guide-card{background:rgba(255,255,255,.02);border:1px solid #00f2ff;padding:40px;border-radius:30px;position:relative;max-width:500px;box-shadow:0 0 50px rgba(0,242,255,.1);text-align:center;will-change:transform,opacity}
-        .close-guide{position:absolute;top:20px;right:20px;background:0 0;border:none;color:#ff4747;cursor:pointer;font-size:20px}
+        /* CSS مضغوط لتحقيق سرعة Lightning-fast */
+        :root { --c: #00f2ff; --p: #bc47ff; --bg: #020205; }
+        #system-bg { position: fixed; top: 0; left: 0; z-index: -1; width: 100%; height: 100%; background: var(--bg); will-change: transform; }
         
-        /* تعديل شبكة الأقسام لتستوعب 5 أقسام بشكل أنيق */
-        .app-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 20px;
-            padding: 20px;
-        }
-        .app-card{will-change:transform;transform:translateZ(0);transition: 0.3s;}
-        .app-card:hover{transform: scale(1.05) translateZ(0); border-color: #bc47ff;}
+        /* النافذة الترحيبية الاحترافية v2.0 */
+        .guide-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(20px); z-index: 5000; display: flex; justify-content: center; align-items: center; transition: 0.6s; opacity: 1; visibility: visible; }
+        .guide-card { max-width: 400px; width: 90%; background: rgba(255,255,255,0.03); border: 1px solid rgba(0,242,255,0.2); padding: 35px; border-radius: 25px; text-align: center; box-shadow: 0 0 40px rgba(0,0,0,0.5); }
+        .secure-tag { font-size: 10px; color: var(--c); letter-spacing: 2px; margin-bottom: 15px; opacity: 0.8; }
+        .start-btn { width: 100%; padding: 16px; background: var(--c); color: #000; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 25px; display: flex; justify-content: center; align-items: center; gap: 10px; transition: 0.3s; }
+        .start-btn:hover { background: var(--p); transform: scale(1.02); }
+
+        /* شاشة التحميل السلسة */
+        .section-loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 6000; display: none; justify-content: center; align-items: center; flex-direction: column; color: var(--c); }
+        .loader-bar { width: 120px; height: 2px; background: rgba(255,255,255,0.1); margin-top: 15px; overflow: hidden; position: relative; }
+        .loader-progress { width: 40%; height: 100%; background: var(--c); position: absolute; animation: load 1.2s infinite linear; }
+        @keyframes load { 0% { left: -100%; } 100% { left: 100%; } }
+
+        /* شبكة الأقسام الخمسة */
+        .app-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; padding: 20px; }
+        .app-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 25px; border-radius: 20px; cursor: pointer; text-align: center; transition: 0.4s; will-change: transform; transform: translateZ(0); }
+        .app-card:hover { border-color: var(--c); background: rgba(0,242,255,0.05); transform: translateY(-5px) translateZ(0); }
+        .app-card i { color: var(--c); margin-bottom: 12px; transition: 0.3s; }
+        .app-card:hover i { color: var(--p); transform: scale(1.1); }
     </style>
 </head>
 <body>
     <canvas id="system-bg"></canvas>
 
+    <div id="section-loader" class="section-loader">
+        <div style="letter-spacing: 4px; font-size: 11px;">SYNCING CORE</div>
+        <div class="loader-bar"><div class="loader-progress"></div></div>
+    </div>
+
     <div id="guide-overlay" class="guide-overlay">
         <div class="guide-card">
-            <button class="close-guide" onclick="closeGuide()"><i data-lucide="x"></i></button>
-            <div class="guide-header">
-                <span style="color:#00f2ff;font-size:10px;letter-spacing:3px">ZENITH CORP</span>
-                <h2 style="color:#fff;letter-spacing:4px;margin-top:10px">GLOBAL TERMINAL</h2>
-            </div>
-            <div class="guide-body">
-                <p style="color:rgba(255,255,255,.6);margin:20px 0">تم تحديث النظام إلى النسخة العالمية. يمكنك الآن إدارة جميع خدمات Zenith من مكان واحد.</p>
-            </div>
+            <div class="secure-tag"><i data-lucide="shield-check" style="width:12px"></i> GLOBAL SECURITY ACTIVE</div>
+            <h2 style="color:#fff; letter-spacing:3px;">ZENITH SYSTEM</h2>
+            <p style="color:rgba(255,255,255,0.5); font-size:14px; margin-top:15px; line-height:1.6;">Welcome back, King. Your decentralized cloud infrastructure is ready for initialization.</p>
+            <button class="start-btn" onclick="closeGuide()">
+                INITIALIZE SYSTEM <i data-lucide="power"></i>
+            </button>
         </div>
     </div>
 
-    <header>
-        <div class="status-group"><div class="pulse-dot"></div><span>ZENITH GLOBAL ACTIVE</span></div>
-        <div class="logo">ZENITH OS</div>
-        <div class="user-profile"><span id="uName">KING</span><img src="" id="uPic" class="avatar" alt="Profile"></div>
+    <header style="display:flex; justify-content:space-between; align-items:center; padding:20px;">
+        <div class="logo" style="color:#fff; font-weight:bold; letter-spacing:5px;">ZENITH</div>
+        <div class="user-profile" style="display:flex; align-items:center; gap:10px;">
+            <span id="uName" style="color:rgba(255,255,255,0.7); font-size:12px;">KING</span>
+            <div style="width:35px; height:35px; background:var(--c); border-radius:50%;"></div>
+        </div>
     </header>
 
     <main>
-        <section class="dynamic-banner">
-            <div class="banner-bg" id="bImg"></div>
-            <div class="banner-overlay">
-                <div class="banner-info">
-                    <span class="tag" id="bTag">VERSION 2.0</span>
-                    <h1 id="bTitle">ZENITH ECOSYSTEM</h1>
-                    <p id="bDesc">Your global infrastructure is ready for deployment.</p>
-                </div>
+        <section class="dynamic-banner" style="height:200px; margin:20px; border-radius:25px; background:rgba(255,255,255,0.02); display:flex; align-items:center; padding:40px; border:1px solid rgba(255,255,255,0.05);">
+            <div>
+                <span style="color:var(--p); font-size:10px; letter-spacing:3px;">OPERATIONAL</span>
+                <h1 style="color:#fff; margin-top:10px;">ZENITH DASHBOARD</h1>
             </div>
         </section>
 
-        <div class="app-grid" id="appGrid">
-            <div class="app-card"><i data-lucide="settings"></i><h3>OS SETTINGS</h3></div>
-            <div class="app-card"><i data-lucide="globe"></i><h3>NETWORK</h3></div>
-            <div class="app-card"><i data-lucide="shield-check"></i><h3>SECURITY</h3></div>
-            <div class="app-card"><i data-lucide="layers"></i><h3>ECOSYSTEM</h3></div>
-            <div class="app-card" onclick="openGuide()"><i data-lucide="info"></i><h3>SYSTEM INFO</h3></div>
+        <div class="app-grid">
+            <div class="app-card" onclick="loadModule('Settings')"><i data-lucide="settings"></i><h3>SETTINGS</h3></div>
+            <div class="app-card" onclick="loadModule('Network')"><i data-lucide="globe"></i><h3>NETWORK</h3></div>
+            <div class="app-card" onclick="loadModule('Security')"><i data-lucide="lock"></i><h3>SECURITY</h3></div>
+            <div class="app-card" onclick="loadModule('Ecosystem')"><i data-lucide="cpu"></i><h3>ECOSYSTEM</h3></div>
+            <div class="app-card" onclick="openGuide()"><i data-lucide="help-circle"></i><h3>INFO</h3></div>
         </div>
     </main>
 
     <script src="system-bg.js"></script>
-    <script type="module" src="auth-guard.js"></script>
     <script>
-        window.closeGuide=()=>{const g=document.getElementById('guide-overlay');g.style.opacity='0';setTimeout(()=>{g.style.visibility='hidden'},500)};
-        window.openGuide=()=>{const g=document.getElementById('guide-overlay');g.style.visibility='visible';g.style.opacity='1'};
+        // دالة التحميل السلسة
+        window.loadModule = (name) => {
+            const loader = document.getElementById('section-loader');
+            loader.style.display = 'flex';
+            setTimeout(() => { loader.style.display = 'none'; }, 800);
+        };
+
+        window.closeGuide = () => {
+            const g = document.getElementById('guide-overlay');
+            g.style.opacity = '0';
+            setTimeout(() => { g.style.visibility = 'hidden'; }, 600);
+        };
+
+        window.openGuide = () => {
+            const g = document.getElementById('guide-overlay');
+            g.style.visibility = 'visible';
+            g.style.opacity = '1';
+        };
+
         lucide.createIcons();
     </script>
 </body>
