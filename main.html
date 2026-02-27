@@ -3,119 +3,129 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <title>Zenith OS | Advanced Interface</title>
-    <link rel="stylesheet" href="main-style.css">
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <title>Zenith OS | Royal Interface</title>
     <style>
         :root { --c: #00f2ff; --p: #bc47ff; --bg: #020205; }
-        #system-bg { position: fixed; top: 0; left: 0; z-index: -1; width: 100%; height: 100%; background: var(--bg); will-change: transform; }
+        body, html { margin: 0; padding: 0; background: var(--bg); font-family: 'Segoe UI', sans-serif; overflow-x: hidden; color: #fff; }
         
-        /* النافذة الترحيبية */
-        .guide-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(20px); z-index: 5000; display: flex; justify-content: center; align-items: center; transition: 0.6s; opacity: 1; visibility: visible; }
-        .guide-card { max-width: 400px; width: 90%; background: rgba(255,255,255,0.03); border: 1px solid rgba(0,242,255,0.2); padding: 35px; border-radius: 25px; text-align: center; }
-        .start-btn { width: 100%; padding: 16px; background: var(--c); color: #000; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 25px; }
+        /* كود الكانفاس يظل كما هو ليعرض الخلفية المتحركة */
+        #system-bg { position: fixed; top: 0; left: 0; z-index: -1; width: 100%; height: 100%; pointer-events: none; }
+
+        /* شاشة الترحيب (Splash Screen) */
+        .welcome-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(20px);
+            z-index: 9999; display: flex; justify-content: center; align-items: center;
+            transition: 0.8s ease;
+        }
+        .welcome-card { text-align: center; border: 1px solid rgba(0,242,255,0.2); padding: 40px; border-radius: 30px; background: rgba(255,255,255,0.02); }
+        .init-btn { margin-top: 25px; padding: 15px 40px; background: var(--c); color: #000; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .init-btn:hover { box-shadow: 0 0 20px var(--c); transform: scale(1.05); }
+
+        /* البانر العلوي المتفاعل */
+        .hero-banner {
+            margin: 20px; height: 260px; border-radius: 35px;
+            position: relative; overflow: hidden; border: 1px solid rgba(255,255,255,0.05);
+            display: flex; align-items: flex-end; padding: 35px;
+        }
+        #banner-img {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-size: cover; background-position: center;
+            transition: 1s ease; z-index: -1; filter: brightness(0.4); transform: scale(1.05);
+        }
 
         /* شبكة الأقسام */
-        .app-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 15px; padding: 20px; }
-        
-        /* المربع المتطور (Card) */
+        .app-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; padding: 20px; }
         .app-card { 
             background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); 
-            padding: 30px 20px; border-radius: 25px; cursor: pointer; text-align: center; 
-            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); 
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            min-height: 180px; position: relative; overflow: hidden;
+            padding: 25px; border-radius: 25px; cursor: pointer; text-align: center; transition: 0.4s;
         }
-
-        /* حالة الضغط على المربع */
-        .app-card.active { 
-            border-color: var(--c); background: rgba(0,242,255,0.08); 
-            box-shadow: 0 0 30px rgba(0,242,255,0.1); transform: scale(1.02);
-        }
-
-        .banana-icon { width: 45px; height: 45px; margin-bottom: 15px; transition: 0.4s; }
-        .banana-icon path, .banana-icon circle { stroke: var(--c); fill: none; stroke-width: 1.5; }
+        .app-card.active { border-color: var(--c); background: rgba(0,242,255,0.08); }
         
-        /* النبذة التعريفية (مخفية وتظهر عند النشاط) */
-        .app-desc { 
-            max-height: 0; opacity: 0; font-size: 13px; color: rgba(255,255,255,0.6); 
-            margin-top: 0; transition: all 0.5s ease; pointer-events: none;
-            line-height: 1.5;
-        }
-        .app-card.active .app-desc { max-height: 100px; opacity: 1; margin-top: 15px; }
-        .app-card.active .banana-icon { transform: scale(0.8); margin-bottom: 5px; }
-        
-        h3 { color: #fff; margin: 0; font-size: 16px; letter-spacing: 1px; transition: 0.3s; }
-        .app-card.active h3 { color: var(--c); }
+        .icon-svg { width: 35px; height: 35px; margin-bottom: 12px; }
+        .icon-svg path, .icon-svg circle { stroke: var(--c); fill: none; stroke-width: 1.5; }
     </style>
 </head>
 <body>
     <canvas id="system-bg"></canvas>
 
-    <div id="guide-overlay" class="guide-overlay">
-        <div class="guide-card">
-            <h2 style="color:#fff; letter-spacing:3px;">ZENITH OS</h2>
-            <p style="color:rgba(255,255,255,0.5); font-size:14px; margin-top:15px;">Welcome back, King. The ecosystem is ready.</p>
-            <button class="start-btn" onclick="closeGuide()">INITIALIZE SYSTEM</button>
+    <div id="welcome" class="welcome-screen">
+        <div class="welcome-card">
+            <h1 style="letter-spacing: 8px;">ZENITH OS</h1>
+            <p style="color: rgba(255,255,255,0.5);">Ready for initialization, King.</p>
+            <button class="init-btn" onclick="startSystem()">INITIALIZE SYSTEM</button>
         </div>
     </div>
 
-    <header style="padding:25px; display:flex; justify-content:space-between; align-items:center;">
-        <div style="color:#fff; font-weight:bold; letter-spacing:5px; font-size:20px;">ZENITH</div>
-        <div style="width:35px; height:35px; background:var(--c); border-radius:50%;"></div>
-    </header>
+    <main id="main-ui" style="opacity: 0; transition: 1s; visibility: hidden;">
+        <header style="padding: 20px; display: flex; justify-content: space-between;">
+            <div style="font-weight: bold; letter-spacing: 5px;">ZENITH</div>
+        </header>
 
-    <main>
+        <section class="hero-banner">
+            <div id="banner-img" style="background-image: url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072');"></div>
+            <div>
+                <span id="b-tag" style="color:var(--c); font-size:10px; font-weight:bold; letter-spacing:3px;">SYSTEM ACTIVE</span>
+                <h2 id="b-title" style="margin: 10px 0; font-size: 30px;">CENTRAL HUB</h2>
+            </div>
+        </section>
+
         <div class="app-grid">
-            <div class="app-card" onclick="toggleCard(this)">
-                <svg class="banana-icon" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40"/><path d="M50 20v60M20 50h60"/></svg>
+            <div class="app-card" onclick="updateUI(0, this)">
+                <svg class="icon-svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40"/><path d="M50 20v60M20 50h60"/></svg>
                 <h3>SETTINGS</h3>
-                <div class="app-desc">تحكم كامل في إعدادات النظام وتخصيص الواجهة البرمجية العالمية.</div>
             </div>
-            
-            <div class="app-card" onclick="toggleCard(this)">
-                <svg class="banana-icon" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40"/><path d="M50 10Q70 50 50 90Q30 50 50 10Z"/><path d="M10 50Q50 70 90 50Q50 30 10 50Z"/></svg>
+            <div class="app-card" onclick="updateUI(1, this)">
+                <svg class="icon-svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40"/><path d="M50 10Q70 50 50 90Q30 50 50 10Z"/><path d="M10 50Q50 70 90 50Q50 30 10 50Z"/></svg>
                 <h3>NETWORK</h3>
-                <div class="app-desc">إدارة الاتصالات السحابية ومراقبة جودة الشبكة في الوقت الفعلي.</div>
             </div>
-            
-            <div class="app-card" onclick="toggleCard(this)">
-                <svg class="banana-icon" viewBox="0 0 100 100"><path d="M50 10L85 25V60Q50 95 15 60V25Z"/><path d="M40 50l8 8 17-18"/></svg>
+            <div class="app-card" onclick="updateUI(2, this)">
+                <svg class="icon-svg" viewBox="0 0 100 100"><path d="M50 10L85 25V60Q50 95 15 60V25Z"/><path d="M40 50l8 8 17-18"/></svg>
                 <h3>SECURITY</h3>
-                <div class="app-desc">نظام تشفير AES-256 لحماية بياناتك من الاختراق العالمي.</div>
             </div>
-            
-            <div class="app-card" onclick="toggleCard(this)">
-                <svg class="banana-icon" viewBox="0 0 100 100"><rect x="20" y="20" width="25" height="25" rx="3"/><rect x="55" y="20" width="25" height="25" rx="3"/><rect x="20" y="55" width="25" height="25" rx="3"/><rect x="55" y="55" width="25" height="25" rx="3"/></svg>
+            <div class="app-card" onclick="updateUI(3, this)">
+                <svg class="icon-svg" viewBox="0 0 100 100"><rect x="20" y="20" width="25" height="25" rx="3"/><rect x="55" y="20" width="25" height="25" rx="3"/><rect x="20" y="55" width="25" height="25" rx="3"/><rect x="55" y="55" width="25" height="25" rx="3"/></svg>
                 <h3>ECOSYSTEM</h3>
-                <div class="app-desc">اكتشف جميع خدماتنا المترابطة التي تعمل معاً في بيئة واحدة.</div>
             </div>
-            
-            <div class="app-card" onclick="toggleCard(this)">
-                <svg class="banana-icon" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40"/><rect x="47" y="40" width="6" height="35" rx="2"/><circle cx="50" cy="28" r="4"/></svg>
+            <div class="app-card" onclick="updateUI(4, this)">
+                <svg class="icon-svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40"/><rect x="47" y="40" width="6" height="35" rx="2"/><circle cx="50" cy="28" r="4"/></svg>
                 <h3>INFO</h3>
-                <div class="app-desc">معلومات النظام، إصدار البرمجية، ووسائل التواصل مع الدعم.</div>
             </div>
         </div>
     </main>
 
     <script src="system-bg.js"></script>
     <script>
-        // وظيفة التبديل السلسة للنبذة التعريفية
-        function toggleCard(card) {
-            // إغلاق أي كرت مفتوح حالياً
-            document.querySelectorAll('.app-card').forEach(c => {
-                if(c !== card) c.classList.remove('active');
-            });
-            // فتح أو إغلاق الكرت الحالي
-            card.classList.toggle('active');
+        const data = [
+            { title: "OS SETTINGS", tag: "CONFIG", img: "https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=2070" },
+            { title: "NETWORK HUB", tag: "CLOUD", img: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072" },
+            { title: "SECURITY ACCESS", tag: "ENCRYPT", img: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=2070" },
+            { title: "ZENITH ECO", tag: "UNIFIED", img: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=2070" },
+            { title: "SYSTEM INFO", tag: "META", img: "https://images.unsplash.com/photo-1677442136019-21780ecad995?q=80&w=2070" }
+        ];
+
+        function startSystem() {
+            document.getElementById('welcome').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('welcome').style.display = 'none';
+                const ui = document.getElementById('main-ui');
+                ui.style.visibility = 'visible';
+                ui.style.opacity = '1';
+            }, 800);
         }
 
-        window.closeGuide = () => {
-            const g = document.getElementById('guide-overlay');
-            g.style.opacity = '0';
-            setTimeout(() => { g.style.visibility = 'hidden'; }, 600);
-        };
+        function updateUI(idx, el) {
+            const img = document.getElementById('banner-img');
+            document.querySelectorAll('.app-card').forEach(c => c.classList.remove('active'));
+            el.classList.add('active');
+            img.style.opacity = '0';
+            setTimeout(() => {
+                img.style.backgroundImage = `url('${data[idx].img}')`;
+                document.getElementById('b-title').innerText = data[idx].title;
+                document.getElementById('b-tag').innerText = data[idx].tag;
+                img.style.opacity = '0.4';
+            }, 300);
+        }
     </script>
 </body>
 </html>
