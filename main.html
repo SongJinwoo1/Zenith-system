@@ -1,73 +1,69 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <title>Zenith OS | Dashboard</title>
+    <title>Zenith OS | Global System</title>
     <link rel="stylesheet" href="main-style.css">
     <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* كود مضغوط للنافذة والخلفية لضمان سرعة الرندر */
+        #system-bg{position:fixed;top:0;left:0;z-index:-1;background:#020205;width:100%;height:100%;will-change:transform}
+        .guide-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.9);backdrop-filter:blur(15px);z-index:3000;display:flex;justify-content:center;align-items:center;transition:.5s;opacity:1;visibility:visible}
+        .guide-card{background:rgba(255,255,255,.02);border:1px solid #00f2ff;padding:40px;border-radius:30px;position:relative;max-width:500px;box-shadow:0 0 50px rgba(0,242,255,.1);text-align:center;will-change:transform,opacity}
+        .close-guide{position:absolute;top:20px;right:20px;background:0 0;border:none;color:#ff4747;cursor:pointer;font-size:20px}
+    </style>
 </head>
 <body>
     <canvas id="system-bg"></canvas>
+
+    <div id="guide-overlay" class="guide-overlay">
+        <div class="guide-card">
+            <button class="close-guide" onclick="closeGuide()"><i data-lucide="x"></i></button>
+            <div class="guide-header"><span style="color:#00f2ff;font-size:10px;letter-spacing:3px">GLOBAL SYSTEM</span><h2 style="color:#fff;letter-spacing:4px;margin-top:10px">ZENITH ECOSYSTEM</h2></div>
+            <div class="guide-body">
+                <p style="color:rgba(255,255,255,.6);margin:20px 0">Welcome to the future of cloud management. This platform is built for global scale.</p>
+                <div style="text-align:left;color:#fff;margin-top:20px">
+                    <div style="margin-bottom:10px"><span style="color:#bc47ff">01</span> Global Core Modules</div>
+                    <div style="margin-bottom:10px"><span style="color:#bc47ff">02</span> Secure Cloud Encryption</div>
+                    <div><span style="color:#bc47ff">03</span> Scalable Enterprise Solutions</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <header>
         <div class="status-group"><div class="pulse-dot"></div><span>ZENITH ACTIVE</span></div>
         <div class="logo">ZENITH OS</div>
-        <div class="user-profile">
-            <span id="uName">LOADING...</span>
-            <img src="https://via.placeholder.com/40" id="uPic" class="avatar" alt="Profile">
-            <button onclick="logout()" style="background:transparent; border:1px solid #ff4747; color:#ff4747; cursor:pointer; margin-left:10px; border-radius:5px; font-size:10px; padding:2px 5px;">EXIT</button>
-        </div>
+        <div class="user-profile"><span id="uName">KING</span><img src="" id="uPic" class="avatar" alt="Profile"></div>
     </header>
+
     <main>
         <section class="dynamic-banner">
             <div class="banner-bg" id="bImg"></div>
             <div class="banner-overlay">
                 <div class="banner-info">
                     <span class="tag" id="bTag">SYSTEM READY</span>
-                    <h1 id="bTitle">WELCOME BACK</h1>
-                    <p id="bDesc">Select a module to interface with the global core...</p>
+                    <h1 id="bTitle">WELCOME TO ZENITH</h1>
+                    <p id="bDesc">Your global dashboard is now operational.</p>
                 </div>
             </div>
         </section>
-        <div class="app-grid" id="appGrid"></div>
+
+        <div class="app-grid" id="appGrid">
+            <div class="app-card"><i data-lucide="settings"></i><h3>OS SETTINGS</h3></div>
+            <div class="app-card"><i data-lucide="globe"></i><h3>CONNECTIVITY</h3></div>
+            <div class="app-card"><i data-lucide="shield-check"></i><h3>ENCRYPTION</h3></div>
+            <div class="app-card" onclick="openGuide()"><i data-lucide="info"></i><h3>SYSTEM INFO</h3></div>
+        </div>
     </main>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyC-Vfw10y-xcUL-U-DGhDgoi4oUjlNbpXg",
-            authDomain: "zenith-c26ae.firebaseapp.com",
-            projectId: "zenith-c26ae",
-            storageBucket: "zenith-c26ae.firebasestorage.app",
-            messagingSenderId: "146416524485",
-            appId: "1:146416524485:web:8aad935153f17f244924ac"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-
-        // وظيفة جلب بيانات الملك
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                document.getElementById('uName').innerText = user.displayName || user.email.split('@')[0];
-                if(user.photoURL) document.getElementById('uPic').src = user.photoURL;
-                document.getElementById('bTitle').innerText = "WELCOME, " + (user.displayName || "KING");
-            } else {
-                // إذا حاول شخص الدخول بدون حساب، نطرده للـ index
-                window.location.href = "index.html";
-            }
-        });
-
-        // وظيفة تسجيل الخروج
-        window.logout = () => {
-            signOut(auth).then(() => { window.location.href = "index.html"; });
-        };
-    </script>
-
-    <script type="module" src="main-runtime.js"></script>
     <script src="system-bg.js"></script>
-    <script>lucide.createIcons();</script>
+    <script type="module" src="auth-guard.js"></script>
+    <script>
+        window.closeGuide=()=>{const g=document.getElementById('guide-overlay');g.style.opacity='0';setTimeout(()=>{g.style.visibility='hidden'},500)};
+        window.openGuide=()=>{const g=document.getElementById('guide-overlay');g.style.visibility='visible';g.style.opacity='1'};
+        lucide.createIcons();
+    </script>
 </body>
 </html>
