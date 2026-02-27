@@ -4,45 +4,149 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
     <title>Zenith OS | Global Access</title>
-    <link rel="stylesheet" href="login-style.css">
+    <style>
+        :root { --c: #00f2ff; --p: #bc47ff; --bg: #020205; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+        body { background: var(--bg); min-height: 100vh; display: flex; justify-content: center; align-items: center; overflow: hidden; }
+        
+        /* الخلفية المتحركة */
+        #p { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
+
+        /* اللوحة الشفافة تماماً (بدون سواد وبدون زجاج) */
+        .panel {
+            position: relative; z-index: 10; width: 95%; max-width: 1100px;
+            background: transparent; /* شفافة تماماً كما طلبت */
+            border: 1.5px solid rgba(0, 242, 255, 0.25); /* إطار نحيف جداً */
+            border-radius: 40px; display: flex; flex-wrap: wrap; 
+            align-items: center; justify-content: space-around; 
+            padding: 60px 40px; box-shadow: none; /* إزالة أي ظل أسود */
+        }
+
+        .side { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 20px; min-width: 250px; }
+        .core { flex: 1.5; padding: 0 40px; text-align: center; border-left: 1px solid rgba(255,255,255,0.1); border-right: 1px solid rgba(255,255,255,0.1); }
+        
+        h2 { color: #fff; font-weight: 200; letter-spacing: 6px; margin-bottom: 35px; text-transform: uppercase; }
+
+        /* حقول إدخال شفافة */
+        input {
+            width: 100%; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px; padding: 16px; color: #fff; text-align: center; outline: none; margin-bottom: 15px;
+            transition: 0.3s;
+        }
+        input:focus { border-color: var(--c); background: rgba(255, 255, 255, 0.05); }
+
+        .btn-main {
+            width: 100%; padding: 16px; background: transparent; border: 1.5px solid var(--c);
+            color: var(--c); border-radius: 12px; cursor: pointer; font-weight: 900; letter-spacing: 2px; transition: 0.4s;
+        }
+        .btn-main:hover { background: var(--c); color: #000; box-shadow: 0 0 30px var(--c); }
+
+        .google-btn {
+            width: 100%; padding: 14px; background: #fff; color: #000; border-radius: 12px; border: none;
+            font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 20px;
+        }
+
+        .z-logo { font-size: 100px; font-weight: 900; background: linear-gradient(135deg, var(--p), var(--c)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 20px var(--c)); }
+        .logo-box { width: 90px; height: 90px; border: 1.5px solid var(--c); border-radius: 25px; display: flex; justify-content: center; align-items: center; color: var(--c); font-size: 45px; font-weight: 900; }
+        
+        @media (max-width: 768px) { .core { border: none; padding: 20px 0; } .panel { border: none; } }
+    </style>
 </head>
 <body>
     <canvas id="p"></canvas>
 
     <div class="panel">
-        <div class="side">
-            <div class="logo-box">Z</div>
-        </div>
+        <div class="side"><div class="logo-box">Z</div></div>
 
         <div class="core">
-            <h2 id="form-title">ZENITH LOGIN</h2>
-            <div id="auth-form">
-                <input type="email" id="user-email" placeholder="EMAIL ADDRESS">
-                <input type="password" id="user-pass" placeholder="ACCESS KEY">
-                
-                <button class="btn-main" onclick="handleAuth()">SUBMIT ACCESS</button>
-            </div>
+            <h2>ZENITH LOGIN</h2>
+            <input type="email" id="user-email" placeholder="EMAIL ADDRESS">
+            <input type="password" id="user-pass" placeholder="ACCESS KEY">
+            <button class="btn-main" onclick="handleAuth()">SUBMIT ACCESS</button>
 
-            <div class="divider"><span>OR</span></div>
+            <div style="margin: 20px 0; color: rgba(255,255,255,0.2); font-size: 12px;">OR</div>
 
             <button class="google-btn" onclick="loginWithGoogle()">
                 <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18">
                 CONTINUE WITH GOOGLE
             </button>
-
-            <p class="toggle-text">
-                <span id="toggle-msg">Don't have an account?</span> 
-                <a href="javascript:void(0)" onclick="toggleForm()" id="toggle-btn">Register Now</a>
-            </p>
         </div>
 
-        <div class="side">
-            <span class="z-logo">Z</span>
-            <p class="sub-text">SYSTEM OS</p>
-        </div>
+        <div class="side"><span class="z-logo">Z</span><p style="color:#fff; font-size:11px; letter-spacing:5px; opacity:0.6;">SYSTEM OS</p></div>
     </div>
 
-    <script type="module" src="auth-logic.js"></script>
-    <script src="login-particles.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyC-Vfw10y-xcUL-U-DGhDgoi4oUjlNbpXg",
+            authDomain: "zenith-c26ae.firebaseapp.com",
+            projectId: "zenith-c26ae",
+            storageBucket: "zenith-c26ae.firebasestorage.app",
+            messagingSenderId: "146416524485",
+            appId: "1:146416524485:web:8aad935153f17f244924ac"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const provider = new GoogleAuthProvider();
+
+        // تفعيل زر جوجل عالمياً ليعمل مع onclick
+        window.loginWithGoogle = async function() {
+            try {
+                const result = await signInWithPopup(auth, provider);
+                // حفظ البيانات تلقائياً عند الدخول
+                await setDoc(doc(db, "users", result.user.uid), {
+                    name: result.user.displayName,
+                    email: result.user.email,
+                    lastLogin: new Date()
+                }, { merge: true });
+                window.location.href = "main.html";
+            } catch (error) {
+                alert("Login Error: " + error.message);
+            }
+        };
+
+        window.handleAuth = async function() {
+            const email = document.getElementById('user-email').value;
+            const pass = document.getElementById('user-pass').value;
+            try {
+                await signInWithEmailAndPassword(auth, email, pass);
+                window.location.href = "main.html";
+            } catch (error) {
+                alert("Access Denied: " + error.message);
+            }
+        };
+    </script>
+
+    <script>
+        // كود الشبكة والجزيئات
+        const cvs = document.getElementById('p'), ctx = cvs.getContext('2d');
+        let dots = [];
+        function init() {
+            cvs.width = window.innerWidth; cvs.height = window.innerHeight;
+            dots = [];
+            for(let i=0; i<100; i++) {
+                dots.push({x: Math.random()*cvs.width, y: Math.random()*cvs.height, vx: (Math.random()-0.5)*0.5, vy: (Math.random()-0.5)*0.5, c: Math.random() > 0.5 ? '#00f2ff' : '#bc47ff'});
+            }
+        }
+        function render() {
+            ctx.clearRect(0,0,cvs.width, cvs.height);
+            dots.forEach((d, i) => {
+                d.x += d.vx; d.y += d.vy;
+                if(d.x<0||d.x>cvs.width) d.vx*=-1; if(d.y<0||d.y>cvs.height) d.vy*=-1;
+                ctx.fillStyle = d.c; ctx.beginPath(); ctx.arc(d.x, d.y, 1.5, 0, 7); ctx.fill();
+                for(let j=i+1; j<dots.length; j++) {
+                    let d2 = dots[j], dist = Math.hypot(d.x-d2.x, d.y-d2.y);
+                    if(dist < 110) { ctx.strokeStyle = `rgba(0,242,255,${1 - dist/110})`; ctx.lineWidth = 0.5; ctx.beginPath(); ctx.moveTo(d.x, d.y); ctx.lineTo(d2.x, d2.y); ctx.stroke(); }
+                }
+            });
+            requestAnimationFrame(render);
+        }
+        window.addEventListener('resize', init); init(); render();
+    </script>
 </body>
 </html>
