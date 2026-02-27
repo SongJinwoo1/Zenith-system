@@ -3,73 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-    <title>Zenith OS | Global Access</title>
+    <title>Zenith OS | Access</title>
     <style>
         :root { --c: #00f2ff; --p: #bc47ff; --bg: #020205; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
         body { background: var(--bg); min-height: 100vh; display: flex; justify-content: center; align-items: center; overflow: hidden; }
         #p { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
 
+        /* اللوحة الشفافة - لم يتم تغييرها */
         .panel {
             position: relative; z-index: 10; width: 95%; max-width: 1100px;
-            background: transparent; border: 1.5px solid rgba(0, 242, 255, 0.25);
+            background: transparent; border: 1.5px solid rgba(0, 242, 255, 0.2);
             border-radius: 40px; display: flex; flex-wrap: wrap; 
             align-items: center; justify-content: space-around; 
-            padding: 60px 40px; box-shadow: none;
+            padding: 60px 40px;
+        }
+
+        /* نافذة الخطأ الاحترافية (مثل الصورة) */
+        #error-toast {
+            position: fixed; top: -100px; left: 50%; transform: translateX(-50%);
+            background: rgba(188, 71, 255, 0.15); border: 1px solid var(--p);
+            backdrop-filter: blur(15px); color: #fff; padding: 20px 40px;
+            border-radius: 20px; z-index: 100; transition: 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            box-shadow: 0 0 30px rgba(188, 71, 255, 0.3); text-align: center; font-weight: bold;
         }
 
         .side { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 20px; min-width: 250px; }
         .core { flex: 1.5; padding: 0 40px; text-align: center; border-left: 1px solid rgba(255,255,255,0.1); border-right: 1px solid rgba(255,255,255,0.1); }
-        
-        h2 { color: #fff; font-weight: 200; letter-spacing: 6px; margin-bottom: 35px; text-transform: uppercase; }
-
-        input {
-            width: 100%; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px; padding: 16px; color: #fff; text-align: center; outline: none; margin-bottom: 15px; transition: 0.3s;
-        }
-        input:focus { border-color: var(--c); background: rgba(255, 255, 255, 0.05); }
-
-        .btn-main {
-            width: 100%; padding: 16px; background: transparent; border: 1.5px solid var(--c);
-            color: var(--c); border-radius: 12px; cursor: pointer; font-weight: 900; letter-spacing: 2px; transition: 0.4s; margin-bottom: 10px;
-        }
+        h2 { color: #fff; font-weight: 200; letter-spacing: 6px; margin-bottom: 35px; }
+        input { width: 100%; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 16px; color: #fff; text-align: center; outline: none; margin-bottom: 15px; }
+        .btn-main { width: 100%; padding: 16px; background: transparent; border: 1.5px solid var(--c); color: var(--c); border-radius: 12px; cursor: pointer; font-weight: 900; transition: 0.4s; }
         .btn-main:hover { background: var(--c); color: #000; box-shadow: 0 0 30px var(--c); }
-
-        .google-btn {
-            width: 100%; padding: 14px; background: #fff; color: #000; border-radius: 12px; border: none;
-            font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 20px;
-        }
-
-        .toggle-link { color: var(--c); cursor: pointer; font-size: 13px; margin-top: 15px; display: block; text-decoration: underline; }
-
-        .z-logo { font-size: 100px; font-weight: 900; background: linear-gradient(135deg, var(--p), var(--c)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 20px var(--c)); }
+        .google-btn { width: 100%; padding: 14px; background: #fff; color: #000; border-radius: 12px; border: none; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 20px; }
+        .toggle-link { color: var(--c); cursor: pointer; font-size: 13px; margin-top: 15px; display: block; }
+        .z-logo { font-size: 100px; font-weight: 900; background: linear-gradient(135deg, var(--p), var(--c)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .logo-box { width: 90px; height: 90px; border: 1.5px solid var(--c); border-radius: 25px; display: flex; justify-content: center; align-items: center; color: var(--c); font-size: 45px; font-weight: 900; }
-        
-        @media (max-width: 768px) { .core { border: none; padding: 20px 0; } .panel { border: none; } }
     </style>
 </head>
 <body>
+    <div id="error-toast">STATUS: SYSTEM ERROR</div>
     <canvas id="p"></canvas>
 
     <div class="panel">
         <div class="side"><div class="logo-box">Z</div></div>
-
         <div class="core">
             <h2 id="auth-title">ZENITH LOGIN</h2>
             <input type="email" id="email" placeholder="EMAIL ADDRESS">
             <input type="password" id="pass" placeholder="ACCESS KEY">
-            
             <button class="btn-main" id="main-btn" onclick="handleAuth()">SUBMIT ACCESS</button>
             <span class="toggle-link" id="toggle-text" onclick="toggleMode()">Don't have an account? Register Now</span>
-
             <div style="margin: 20px 0; color: rgba(255,255,255,0.2); font-size: 12px;">OR</div>
-
             <button class="google-btn" onclick="loginWithGoogle()">
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18">
-                CONTINUE WITH GOOGLE
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18"> CONTINUE WITH GOOGLE
             </button>
         </div>
-
         <div class="side"><span class="z-logo">Z</span><p style="color:#fff; font-size:11px; letter-spacing:5px; opacity:0.6;">SYSTEM OS</p></div>
     </div>
 
@@ -94,54 +81,61 @@
 
         let isLoginMode = true;
 
-        window.toggleMode = function() {
+        function showStatus(msg) {
+            const toast = document.getElementById('error-toast');
+            toast.innerText = msg;
+            toast.style.top = '40px';
+            setTimeout(() => { toast.style.top = '-120px'; }, 4000);
+        }
+
+        window.toggleMode = () => {
             isLoginMode = !isLoginMode;
             document.getElementById('auth-title').innerText = isLoginMode ? "ZENITH LOGIN" : "ZENITH REGISTER";
             document.getElementById('main-btn').innerText = isLoginMode ? "SUBMIT ACCESS" : "CREATE ACCOUNT";
-            document.getElementById('toggle-text').innerText = isLoginMode ? "Don't have an account? Register Now" : "Already have an account? Login";
+            document.getElementById('toggle-text').innerText = isLoginMode ? "Need an account? Register" : "Have an account? Login";
         };
 
-        window.loginWithGoogle = async function() {
+        window.loginWithGoogle = async () => {
             try {
                 const result = await signInWithPopup(auth, provider);
                 await setDoc(doc(db, "users", result.user.uid), { name: result.user.displayName, email: result.user.email, lastLogin: new Date() }, { merge: true });
                 window.location.href = "main.html";
-            } catch (e) { alert("Google Error: " + e.message); }
+            } catch (e) { showStatus("GOOGLE ERROR: " + e.code); }
         };
 
-        window.handleAuth = async function() {
+        window.handleAuth = async () => {
             const email = document.getElementById('email').value;
             const pass = document.getElementById('pass').value;
+            if(!email || !pass) return showStatus("FILL ALL FIELDS");
             try {
                 if (isLoginMode) {
                     await signInWithEmailAndPassword(auth, email, pass);
                 } else {
                     const res = await createUserWithEmailAndPassword(auth, email, pass);
-                    await setDoc(doc(db, "users", res.user.uid), { email: email, createdAt: new Date() });
+                    await setDoc(doc(db, "users", res.user.uid), { email: email, created: new Date() });
                 }
                 window.location.href = "main.html";
-            } catch (e) { alert("Auth Error: " + e.message); }
+            } catch (e) { showStatus("AUTH ERROR: " + e.code); }
         };
     </script>
 
     <script>
-        // كود الشبكة والجزيئات المعتاد
         const cvs = document.getElementById('p'), ctx = cvs.getContext('2d');
         let dots = [];
         function init() {
             cvs.width = window.innerWidth; cvs.height = window.innerHeight;
             dots = [];
-            for(let i=0; i<100; i++) dots.push({x: Math.random()*cvs.width, y: Math.random()*cvs.height, vx: (Math.random()-0.5)*0.5, vy: (Math.random()-0.5)*0.5, c: Math.random() > 0.5 ? '#00f2ff' : '#bc47ff'});
+            for(let i=0; i<80; i++) dots.push({x: Math.random()*cvs.width, y: Math.random()*cvs.height, vx: (Math.random()-0.5)*0.5, vy: (Math.random()-0.5)*0.5, c: Math.random() > 0.5 ? '#00f2ff' : '#bc47ff'});
         }
         function render() {
             ctx.clearRect(0,0,cvs.width, cvs.height);
             dots.forEach((d, i) => {
                 d.x += d.vx; d.y += d.vy;
                 if(d.x<0||d.x>cvs.width) d.vx*=-1; if(d.y<0||d.y>cvs.height) d.vy*=-1;
-                ctx.fillStyle = d.c; ctx.beginPath(); ctx.arc(d.x, d.y, 1.5, 0, 7); ctx.fill();
+                ctx.fillStyle = d.c; ctx.beginPath(); ctx.arc(d.x, d.y, 1.2, 0, 7); ctx.fill();
                 for(let j=i+1; j<dots.length; j++) {
                     let d2 = dots[j], dist = Math.hypot(d.x-d2.x, d.y-d2.y);
-                    if(dist < 110) { ctx.strokeStyle = `rgba(0,242,255,${1 - dist/110})`; ctx.lineWidth = 0.5; ctx.beginPath(); ctx.moveTo(d.x, d.y); ctx.lineTo(d2.x, d2.y); ctx.stroke(); }
+                    if(dist < 120) { ctx.strokeStyle = `rgba(0,242,255,${1 - dist/120})`; ctx.lineWidth = 0.4; ctx.beginPath(); ctx.moveTo(d.x, d.y); ctx.lineTo(d2.x, d2.y); ctx.stroke(); }
                 }
             });
             requestAnimationFrame(render);
