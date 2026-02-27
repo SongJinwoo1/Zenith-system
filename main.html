@@ -3,122 +3,117 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <title>Zenith OS | Global Slider</title>
+    <title>Zenith OS | Ultimate Interface</title>
+    <link rel="stylesheet" href="main-style.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         :root { --c: #00f2ff; --p: #bc47ff; --bg: #020205; }
-        body, html { margin: 0; padding: 0; background: var(--bg); font-family: sans-serif; overflow: hidden; }
-        #system-bg { position: fixed; top: 0; left: 0; z-index: -1; width: 100%; height: 100%; }
-
-        /* حاوي الأقسام الرئيسي */
-        .slider-container {
-            height: 100vh; display: flex; align-items: center; justify-content: center;
-            perspective: 1000px;
+        #system-bg { position: fixed; top: 0; left: 0; z-index: -1; width: 100%; height: 100%; background: var(--bg); }
+        
+        /* شبكة الأقسام */
+        .app-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 20px; padding: 25px; }
+        .app-card { 
+            background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); 
+            padding: 30px; border-radius: 25px; cursor: pointer; text-align: center; 
+            transition: 0.4s; display: flex; flex-direction: column; align-items: center;
         }
+        .app-card:hover { border-color: var(--c); transform: translateY(-10px); background: rgba(0,242,255,0.05); }
 
-        /* المربع الكبير المتغير */
-        .main-display {
-            width: 85%; max-width: 500px; background: rgba(255,255,255,0.02);
-            border: 1px solid rgba(0,242,255,0.2); border-radius: 40px;
-            padding: 40px; text-align: center; position: relative;
-            backdrop-filter: blur(20px); transition: 0.6s cubic-bezier(0.23, 1, 0.32, 1);
-            will-change: transform, opacity;
+        /* نافذة العرض الكبيرة (التي تظهر عند الضغط) */
+        .details-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95); backdrop-filter: blur(25px);
+            z-index: 10000; display: none; justify-content: center; align-items: center;
+            opacity: 0; transition: 0.5s;
         }
-
-        .icon-box { margin-bottom: 25px; transition: 0.5s; }
-        .icon-box svg { width: 80px; height: 80px; }
-        .icon-box path { stroke: var(--c); fill: none; stroke-width: 1.5; }
-
-        h2 { color: #fff; letter-spacing: 5px; margin: 10px 0; font-size: 24px; }
-        p { color: rgba(255,255,255,0.5); line-height: 1.6; font-size: 14px; min-height: 60px; }
-
-        /* أزرار التنقل السفلى */
-        .nav-dots {
-            position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%);
-            display: flex; gap: 15px;
+        .details-card {
+            background: rgba(255,255,255,0.03); border: 1px solid var(--c);
+            width: 90%; max-width: 500px; padding: 50px; border-radius: 40px;
+            text-align: center; position: relative; transform: translateY(50px); transition: 0.5s;
         }
-        .dot {
-            width: 10px; height: 10px; background: rgba(255,255,255,0.2);
-            border-radius: 50%; cursor: pointer; transition: 0.3s;
-        }
-        .dot.active { background: var(--c); box-shadow: 0 0 10px var(--c); width: 30px; border-radius: 10px; }
+        .details-overlay.active { display: flex; opacity: 1; }
+        .details-overlay.active .details-card { transform: translateY(0); }
 
-        /* تأثير الحركة عند التغيير */
-        .slide-out { opacity: 0; transform: translateX(-50px) scale(0.9); }
-        .slide-in { opacity: 0; transform: translateX(50px) scale(0.9); }
+        .close-details { position: absolute; top: 25px; right: 25px; color: #ff4747; cursor: pointer; }
+        .banana-large { width: 80px; height: 80px; margin-bottom: 25px; }
+        .banana-large path, .banana-large circle { stroke: var(--c); fill: none; stroke-width: 1.5; }
+        
+        h2 { color: #fff; letter-spacing: 4px; margin-bottom: 15px; }
+        p { color: rgba(255,255,255,0.6); line-height: 1.8; font-size: 15px; }
+        
+        .action-btn {
+            margin-top: 30px; padding: 15px 40px; background: var(--c); 
+            border: none; border-radius: 15px; font-weight: bold; cursor: pointer; transition: 0.3s;
+        }
+        .action-btn:hover { background: var(--p); transform: scale(1.05); }
     </style>
 </head>
 <body>
     <canvas id="system-bg"></canvas>
 
-    <div class="slider-container">
-        <div id="display-card" class="main-display">
-            <div id="icon-target" class="icon-box">
-                </div>
-            <h2 id="title-target">ZENITH OS</h2>
-            <p id="desc-target">Initializing secure global environment...</p>
-            
-            <button style="margin-top:20px; padding:12px 30px; background:var(--c); border:none; border-radius:10px; font-weight:bold; cursor:pointer;" onclick="nextSlide()">NEXT MODULE</button>
+    <div id="details-overlay" class="details-overlay" onclick="closeDetails(event)">
+        <div class="details-card" onclick="event.stopPropagation()">
+            <div class="close-details" onclick="closeDetails()"><i data-lucide="x"></i></div>
+            <div id="details-icon-container"></div>
+            <h2 id="details-title">TITLE</h2>
+            <p id="details-text">Description goes here...</p>
+            <button class="action-btn">EXECUTE MODULE</button>
         </div>
     </div>
 
-    <div class="nav-dots" id="dots-container"></div>
+    <header style="padding:30px; display:flex; justify-content:space-between; align-items:center;">
+        <div style="color:#fff; font-weight:bold; letter-spacing:6px; font-size:22px;">ZENITH</div>
+        <div style="width:40px; height:40px; background:var(--c); border-radius:50%; box-shadow: 0 0 15px var(--c);"></div>
+    </header>
+
+    <main>
+        <div class="app-grid">
+            <div class="app-card" onclick="openDetails('SETTINGS', 'نظام التحكم المركزي لتخصيص موارد الخادم والواجهات البرمجية لـ Zenith OS.', 'settings')">
+                <i data-lucide="settings" style="color:var(--c); margin-bottom:15px; width:40px; height:40px;"></i>
+                <h3>SETTINGS</h3>
+            </div>
+            <div class="app-card" onclick="openDetails('NETWORK', 'مراقبة حية وشاملة لجميع الاتصالات الدولية وتدفق البيانات المشفرة عبر السحابة.', 'globe')">
+                <i data-lucide="globe" style="color:var(--c); margin-bottom:15px; width:40px; height:40px;"></i>
+                <h3>NETWORK</h3>
+            </div>
+            <div class="app-card" onclick="openDetails('SECURITY', 'بروتوكولات حماية متقدمة تعتمد على تشفير AES-256 لضمان أمان البيانات المطلق.', 'shield-check')">
+                <i data-lucide="shield-check" style="color:var(--c); margin-bottom:15px; width:40px; height:40px;"></i>
+                <h3>SECURITY</h3>
+            </div>
+            <div class="app-card" onclick="openDetails('ECOSYSTEM', 'بيئة عمل متكاملة تربط جميع منتجات Zenith في منصة واحدة موحدة.', 'layers')">
+                <i data-lucide="layers" style="color:var(--c); margin-bottom:15px; width:40px; height:40px;"></i>
+                <h3>ECOSYSTEM</h3>
+            </div>
+            <div class="app-card" onclick="openDetails('INFO', 'تفاصيل الإصدار، فريق التطوير، ووسائل التواصل الرسمية مع الدعم التقني العالمي.', 'info')">
+                <i data-lucide="info" style="color:var(--c); margin-bottom:15px; width:40px; height:40px;"></i>
+                <h3>INFO</h3>
+            </div>
+        </div>
+    </main>
 
     <script src="system-bg.js"></script>
     <script>
-        const modules = [
-            { title: "SETTINGS", desc: "تخصيص كامل لبنية النظام السحابية وإدارة الموارد الذكية.", icon: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40"/><path d="M50 20v60M20 50h60"/></svg>' },
-            { title: "NETWORK", desc: "ربط عالمي مشفر بسرعة البرق مع حماية من الهجمات الموزعة.", icon: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40"/><path d="M50 10Q70 50 50 90Q30 50 50 10Z"/><path d="M10 50Q50 70 90 50Q50 30 10 50Z"/></svg>' },
-            { title: "SECURITY", desc: "نظام تشفير AES-256 متطور يضمن خصوصية مطلقة لجميع بياناتك.", icon: '<svg viewBox="0 0 100 100"><path d="M50 10L85 25V60Q50 95 15 60V25Z"/><path d="M40 50l8 8 17-18"/></svg>' },
-            { title: "ECOSYSTEM", desc: "بيئة عمل موحدة تربط خدمات Zenith بذكاء اصطناعي متكامل.", icon: '<svg viewBox="0 0 100 100"><rect x="20" y="20" width="25" height="25" rx="3"/><rect x="55" y="20" width="25" height="25" rx="3"/><rect x="20" y="55" width="25" height="25" rx="3"/><rect x="55" y="55" width="25" height="25" rx="3"/></svg>' },
-            { title: "INFO", desc: "مركز المساعدة ومعلومات الإصدار والتواصل المباشر مع المطورين.", icon: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40"/><rect x="47" y="40" width="6" height="35" rx="2"/><circle cx="50" cy="28" r="4"/></svg>' }
-        ];
-
-        let current = 0;
-        const card = document.getElementById('display-card');
-
-        function updateDisplay(index) {
-            card.classList.add('slide-out');
+        function openDetails(title, text, iconName) {
+            const overlay = document.getElementById('details-overlay');
+            document.getElementById('details-title').innerText = title;
+            document.getElementById('details-text').innerText = text;
             
-            setTimeout(() => {
-                document.getElementById('icon-target').innerHTML = modules[index].icon;
-                document.getElementById('title-target').innerText = modules[index].title;
-                document.getElementById('desc-target').innerText = modules[index].desc;
-                
-                updateDots(index);
-                
-                card.classList.remove('slide-out');
-                card.classList.add('slide-in');
-                
-                setTimeout(() => {
-                    card.classList.remove('slide-in');
-                }, 50);
-            }, 300);
+            // تحديث الأيقونة داخل النافذة
+            const iconContainer = document.getElementById('details-icon-container');
+            iconContainer.innerHTML = `<i data-lucide="${iconName}" style="width:60px; height:60px; color:var(--c); margin-bottom:20px;"></i>`;
+            lucide.createIcons();
+
+            overlay.style.display = 'flex';
+            setTimeout(() => overlay.classList.add('active'), 10);
         }
 
-        function createDots() {
-            const container = document.getElementById('dots-container');
-            modules.forEach((_, i) => {
-                const dot = document.createElement('div');
-                dot.className = `dot ${i === 0 ? 'active' : ''}`;
-                dot.onclick = () => { current = i; updateDisplay(i); };
-                container.appendChild(dot);
-            });
+        function closeDetails(event) {
+            const overlay = document.getElementById('details-overlay');
+            overlay.classList.remove('active');
+            setTimeout(() => overlay.style.display = 'none', 500);
         }
 
-        function updateDots(index) {
-            document.querySelectorAll('.dot').forEach((d, i) => {
-                d.className = `dot ${i === index ? 'active' : ''}`;
-            });
-        }
-
-        function nextSlide() {
-            current = (current + 1) % modules.length;
-            updateDisplay(current);
-        }
-
-        // البداية
-        createDots();
-        updateDisplay(0);
+        lucide.createIcons();
     </script>
 </body>
 </html>
