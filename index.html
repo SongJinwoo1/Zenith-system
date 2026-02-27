@@ -8,18 +8,14 @@
         :root { --c: #00f2ff; --p: #bc47ff; --bg: #020205; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
         body { background: var(--bg); min-height: 100vh; display: flex; justify-content: center; align-items: center; overflow: hidden; }
-        
-        /* الخلفية المتحركة */
         #p { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
 
-        /* اللوحة الشفافة تماماً (بدون سواد وبدون زجاج) */
         .panel {
             position: relative; z-index: 10; width: 95%; max-width: 1100px;
-            background: transparent; /* شفافة تماماً كما طلبت */
-            border: 1.5px solid rgba(0, 242, 255, 0.25); /* إطار نحيف جداً */
+            background: transparent; border: 1.5px solid rgba(0, 242, 255, 0.25);
             border-radius: 40px; display: flex; flex-wrap: wrap; 
             align-items: center; justify-content: space-around; 
-            padding: 60px 40px; box-shadow: none; /* إزالة أي ظل أسود */
+            padding: 60px 40px; box-shadow: none;
         }
 
         .side { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 20px; min-width: 250px; }
@@ -27,17 +23,15 @@
         
         h2 { color: #fff; font-weight: 200; letter-spacing: 6px; margin-bottom: 35px; text-transform: uppercase; }
 
-        /* حقول إدخال شفافة */
         input {
             width: 100%; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px; padding: 16px; color: #fff; text-align: center; outline: none; margin-bottom: 15px;
-            transition: 0.3s;
+            border-radius: 12px; padding: 16px; color: #fff; text-align: center; outline: none; margin-bottom: 15px; transition: 0.3s;
         }
         input:focus { border-color: var(--c); background: rgba(255, 255, 255, 0.05); }
 
         .btn-main {
             width: 100%; padding: 16px; background: transparent; border: 1.5px solid var(--c);
-            color: var(--c); border-radius: 12px; cursor: pointer; font-weight: 900; letter-spacing: 2px; transition: 0.4s;
+            color: var(--c); border-radius: 12px; cursor: pointer; font-weight: 900; letter-spacing: 2px; transition: 0.4s; margin-bottom: 10px;
         }
         .btn-main:hover { background: var(--c); color: #000; box-shadow: 0 0 30px var(--c); }
 
@@ -45,6 +39,8 @@
             width: 100%; padding: 14px; background: #fff; color: #000; border-radius: 12px; border: none;
             font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 20px;
         }
+
+        .toggle-link { color: var(--c); cursor: pointer; font-size: 13px; margin-top: 15px; display: block; text-decoration: underline; }
 
         .z-logo { font-size: 100px; font-weight: 900; background: linear-gradient(135deg, var(--p), var(--c)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 20px var(--c)); }
         .logo-box { width: 90px; height: 90px; border: 1.5px solid var(--c); border-radius: 25px; display: flex; justify-content: center; align-items: center; color: var(--c); font-size: 45px; font-weight: 900; }
@@ -59,10 +55,12 @@
         <div class="side"><div class="logo-box">Z</div></div>
 
         <div class="core">
-            <h2>ZENITH LOGIN</h2>
-            <input type="email" id="user-email" placeholder="EMAIL ADDRESS">
-            <input type="password" id="user-pass" placeholder="ACCESS KEY">
-            <button class="btn-main" onclick="handleAuth()">SUBMIT ACCESS</button>
+            <h2 id="auth-title">ZENITH LOGIN</h2>
+            <input type="email" id="email" placeholder="EMAIL ADDRESS">
+            <input type="password" id="pass" placeholder="ACCESS KEY">
+            
+            <button class="btn-main" id="main-btn" onclick="handleAuth()">SUBMIT ACCESS</button>
+            <span class="toggle-link" id="toggle-text" onclick="toggleMode()">Don't have an account? Register Now</span>
 
             <div style="margin: 20px 0; color: rgba(255,255,255,0.2); font-size: 12px;">OR</div>
 
@@ -77,7 +75,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -94,44 +92,46 @@
         const db = getFirestore(app);
         const provider = new GoogleAuthProvider();
 
-        // تفعيل زر جوجل عالمياً ليعمل مع onclick
+        let isLoginMode = true;
+
+        window.toggleMode = function() {
+            isLoginMode = !isLoginMode;
+            document.getElementById('auth-title').innerText = isLoginMode ? "ZENITH LOGIN" : "ZENITH REGISTER";
+            document.getElementById('main-btn').innerText = isLoginMode ? "SUBMIT ACCESS" : "CREATE ACCOUNT";
+            document.getElementById('toggle-text').innerText = isLoginMode ? "Don't have an account? Register Now" : "Already have an account? Login";
+        };
+
         window.loginWithGoogle = async function() {
             try {
                 const result = await signInWithPopup(auth, provider);
-                // حفظ البيانات تلقائياً عند الدخول
-                await setDoc(doc(db, "users", result.user.uid), {
-                    name: result.user.displayName,
-                    email: result.user.email,
-                    lastLogin: new Date()
-                }, { merge: true });
+                await setDoc(doc(db, "users", result.user.uid), { name: result.user.displayName, email: result.user.email, lastLogin: new Date() }, { merge: true });
                 window.location.href = "main.html";
-            } catch (error) {
-                alert("Login Error: " + error.message);
-            }
+            } catch (e) { alert("Google Error: " + e.message); }
         };
 
         window.handleAuth = async function() {
-            const email = document.getElementById('user-email').value;
-            const pass = document.getElementById('user-pass').value;
+            const email = document.getElementById('email').value;
+            const pass = document.getElementById('pass').value;
             try {
-                await signInWithEmailAndPassword(auth, email, pass);
+                if (isLoginMode) {
+                    await signInWithEmailAndPassword(auth, email, pass);
+                } else {
+                    const res = await createUserWithEmailAndPassword(auth, email, pass);
+                    await setDoc(doc(db, "users", res.user.uid), { email: email, createdAt: new Date() });
+                }
                 window.location.href = "main.html";
-            } catch (error) {
-                alert("Access Denied: " + error.message);
-            }
+            } catch (e) { alert("Auth Error: " + e.message); }
         };
     </script>
 
     <script>
-        // كود الشبكة والجزيئات
+        // كود الشبكة والجزيئات المعتاد
         const cvs = document.getElementById('p'), ctx = cvs.getContext('2d');
         let dots = [];
         function init() {
             cvs.width = window.innerWidth; cvs.height = window.innerHeight;
             dots = [];
-            for(let i=0; i<100; i++) {
-                dots.push({x: Math.random()*cvs.width, y: Math.random()*cvs.height, vx: (Math.random()-0.5)*0.5, vy: (Math.random()-0.5)*0.5, c: Math.random() > 0.5 ? '#00f2ff' : '#bc47ff'});
-            }
+            for(let i=0; i<100; i++) dots.push({x: Math.random()*cvs.width, y: Math.random()*cvs.height, vx: (Math.random()-0.5)*0.5, vy: (Math.random()-0.5)*0.5, c: Math.random() > 0.5 ? '#00f2ff' : '#bc47ff'});
         }
         function render() {
             ctx.clearRect(0,0,cvs.width, cvs.height);
