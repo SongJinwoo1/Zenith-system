@@ -10,7 +10,7 @@
         body { background: var(--bg); min-height: 100vh; display: flex; justify-content: center; align-items: center; overflow: hidden; }
         #p { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
 
-        /* اللوحة الشفافة - لم يتم تغيير أي شيء فيها بناءً على طلبك */
+        /* اللوحة الشفافة تماماً كما طلبت */
         .panel {
             position: relative; z-index: 10; width: 95%; max-width: 1100px;
             background: transparent; border: 1.5px solid rgba(0, 242, 255, 0.2);
@@ -18,14 +18,13 @@
             align-items: center; justify-content: space-around; padding: 60px 40px;
         }
 
-        /* نافذة الخطأ المودرن (تظهر وتختفي بتأثير نيون مثل الصورة) */
+        /* نافذة الخطأ النيون الاحترافية */
         #error-toast {
             position: fixed; top: -150px; left: 50%; transform: translateX(-50%);
-            background: rgba(188, 71, 255, 0.1); border: 1.5px solid var(--p);
+            background: rgba(188, 71, 255, 0.1); border: 1px solid var(--p);
             backdrop-filter: blur(15px); color: #fff; padding: 25px 50px;
             border-radius: 25px; z-index: 1000; transition: 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             box-shadow: 0 0 40px rgba(188, 71, 255, 0.3); text-align: center;
-            font-weight: bold; letter-spacing: 1px;
         }
 
         .side { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 20px; min-width: 250px; }
@@ -36,12 +35,12 @@
         .btn-main:hover { background: var(--c); color: #000; box-shadow: 0 0 30px var(--c); }
         .google-btn { width: 100%; padding: 14px; background: #fff; color: #000; border-radius: 12px; border: none; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 20px; }
         .toggle-link { color: var(--c); cursor: pointer; font-size: 13px; margin-top: 15px; display: block; }
-        .z-logo { font-size: 100px; font-weight: 900; background: linear-gradient(135deg, var(--p), var(--c)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 20px var(--c)); }
+        .z-logo { font-size: 100px; font-weight: 900; background: linear-gradient(135deg, var(--p), var(--c)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .logo-box { width: 90px; height: 90px; border: 1.5px solid var(--c); border-radius: 25px; display: flex; justify-content: center; align-items: center; color: var(--c); font-size: 45px; font-weight: 900; }
     </style>
 </head>
 <body>
-    <div id="error-toast">STATUS: INITIALIZING...</div>
+    <div id="error-toast">STATUS: SECURING...</div>
     <canvas id="p"></canvas>
 
     <div class="panel">
@@ -63,7 +62,6 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyC-Vfw10y-xcUL-U-DGhDgoi4oUjlNbpXg",
@@ -76,12 +74,8 @@
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-        const db = getFirestore(app);
         const provider = new GoogleAuthProvider();
 
-        let isLoginMode = true;
-
-        // وظيفة إظهار التنبيه الاحترافي
         function showZenithStatus(msg) {
             const toast = document.getElementById('error-toast');
             toast.innerText = msg;
@@ -89,6 +83,7 @@
             setTimeout(() => { toast.style.top = '-150px'; }, 4000);
         }
 
+        let isLoginMode = true;
         window.toggleMode = () => {
             isLoginMode = !isLoginMode;
             document.getElementById('auth-title').innerText = isLoginMode ? "ZENITH LOGIN" : "ZENITH REGISTER";
@@ -98,14 +93,9 @@
 
         window.loginWithGoogle = async () => {
             try {
-                const result = await signInWithPopup(auth, provider);
-                await setDoc(doc(db, "users", result.user.uid), { name: result.user.displayName, email: result.user.email, lastLogin: new Date() }, { merge: true });
+                await signInWithPopup(auth, provider);
                 window.location.href = "main.html";
-            } catch (e) { 
-                let msg = "ACCESS DENIED";
-                if(e.code === "auth/popup-closed-by-user") msg = "POPUP CLOSED";
-                showZenithStatus(msg + ": " + e.code); 
-            }
+            } catch (e) { showZenithStatus("GOOGLE ERROR: " + e.code); }
         };
 
         window.handleAuth = async () => {
@@ -116,21 +106,15 @@
                 if (isLoginMode) {
                     await signInWithEmailAndPassword(auth, email, pass);
                 } else {
-                    const res = await createUserWithEmailAndPassword(auth, email, pass);
-                    await setDoc(doc(db, "users", res.user.uid), { email: email, created: new Date() });
+                    await createUserWithEmailAndPassword(auth, email, pass);
                 }
                 window.location.href = "main.html";
-            } catch (e) { 
-                let msg = "SYSTEM ERROR";
-                if(e.code === "auth/email-already-in-use") msg = "EMAIL EXISTS";
-                if(e.code === "auth/invalid-credential") msg = "WRONG KEY";
-                showZenithStatus(msg + ": " + e.code); 
-            }
+            } catch (e) { showZenithStatus("AUTH ERROR: " + e.code); }
         };
     </script>
 
     <script>
-        // كود الشبكة والجزيئات في الخلفية
+        // كود الجزيئات والشبكة
         const cvs = document.getElementById('p'), ctx = cvs.getContext('2d');
         let dots = [];
         function init() {
