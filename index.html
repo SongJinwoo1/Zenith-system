@@ -1,118 +1,48 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zenith OS | Secure Access</title>
-    
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyC-Vfw10y-xcUL-U-DGhDgoi4oUjlNbpXg",
-            authDomain: "zenith-c26ae.firebaseapp.com",
-            projectId: "zenith-c26ae",
-            storageBucket: "zenith-c26ae.firebasestorage.app",
-            messagingSenderId: "146416524485",
-            appId: "1:146416524485:web:8aad935153f17f244924ac"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-
-        window.loginWithGoogle = async () => {
-            const provider = new GoogleAuthProvider();
-            try {
-                await signInWithPopup(auth, provider);
-                window.location.href = "main.html"; // تأكد من تسمية ملف النظام بهذا الاسم
-            } catch (e) {
-                console.error("Auth Error:", e.message);
-                alert("تأكد من إضافة الدومين في Firebase Authorized Domains");
-            }
-        };
-    </script>
-
-    <style>
-        :root { --neon: #00f2ff; --purple: #bc47ff; }
-        * { box-sizing: border-box; }
-        body { margin: 0; background: #020205; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: hidden; font-family: 'Segoe UI', sans-serif; }
-        canvas { position: fixed; inset: 0; z-index: 1; }
-
-        /* البطاقة الشفافة العريضة مثل صور الملك */
-        .glass-panel {
-            position: relative; z-index: 10; display: flex; align-items: center;
-            width: 90%; max-width: 850px; min-height: 380px;
-            background: rgba(255, 255, 255, 0.02);
-            backdrop-filter: blur(35px) saturate(200%);
-            -webkit-backdrop-filter: blur(35px) saturate(200%);
-            border: 1px solid rgba(0, 242, 255, 0.15);
-            border-radius: 40px; padding: 30px;
-            box-shadow: 0 0 50px rgba(0,0,0,0.7);
-        }
-
-        .side { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .divider { width: 1px; height: 200px; background: rgba(255,255,255,0.05); margin: 0 30px; }
-        
-        .z-logo { font-size: 110px; font-weight: 900; background: linear-gradient(135deg, var(--purple), var(--neon)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 15px var(--neon)); }
-        
-        .auth-box { flex: 2; text-align: center; }
-        h2 { color: #fff; letter-spacing: 6px; font-weight: 200; margin-bottom: 25px; font-size: 1.1rem; }
-        
-        input { width: 100%; padding: 14px; margin: 8px 0; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: #fff; text-align: center; outline: none; }
-        
-        .google-btn {
-            width: 100%; padding: 14px; margin-top: 15px; cursor: pointer;
-            background: #fff; color: #000; border: none; border-radius: 12px;
-            font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 10px;
-            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .google-btn:hover { transform: scale(1.02); box-shadow: 0 0 20px var(--neon); }
-    </style>
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+    <title>Zenith OS | Global Access</title>
+    <link rel="stylesheet" href="login-style.css">
 </head>
 <body>
-    <canvas id="bg"></canvas>
-    <div class="glass-panel">
+    <canvas id="p"></canvas>
+
+    <div class="panel">
         <div class="side">
-            <div class="z-logo">Z</div>
-            <p style="color:var(--neon); letter-spacing:8px; font-size:10px; margin-top:-15px;">SYSTEM OS</p>
+            <div class="logo-box">Z</div>
         </div>
-        <div class="divider"></div>
-        <div class="auth-box">
-            <h2>ZENITH ACCESS</h2>
-            <input type="text" placeholder="USER IDENTITY">
-            <input type="password" placeholder="ACCESS KEY">
+
+        <div class="core">
+            <h2 id="form-title">ZENITH LOGIN</h2>
+            <div id="auth-form">
+                <input type="email" id="user-email" placeholder="EMAIL ADDRESS">
+                <input type="password" id="user-pass" placeholder="ACCESS KEY">
+                
+                <button class="btn-main" onclick="handleAuth()">SUBMIT ACCESS</button>
+            </div>
+
+            <div class="divider"><span>OR</span></div>
+
             <button class="google-btn" onclick="loginWithGoogle()">
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18">
                 CONTINUE WITH GOOGLE
             </button>
+
+            <p class="toggle-text">
+                <span id="toggle-msg">Don't have an account?</span> 
+                <a href="javascript:void(0)" onclick="toggleForm()" id="toggle-btn">Register Now</a>
+            </p>
+        </div>
+
+        <div class="side">
+            <span class="z-logo">Z</span>
+            <p class="sub-text">SYSTEM OS</p>
         </div>
     </div>
 
-    <script>
-        const cvs = document.getElementById('bg'), ctx = cvs.getContext('2d');
-        let dots = [];
-        function init() {
-            cvs.width = window.innerWidth; cvs.height = window.innerHeight;
-            dots = [];
-            for(let i=0; i<70; i++) {
-                dots.push({x: Math.random()*cvs.width, y: Math.random()*cvs.height, vx: (Math.random()-0.5)*0.4, vy: (Math.random()-0.5)*0.4});
-            }
-        }
-        function render() {
-            ctx.clearRect(0,0,cvs.width, cvs.height);
-            dots.forEach((d, i) => {
-                d.x += d.vx; d.y += d.vy;
-                if(d.x<0||d.x>cvs.width) d.vx*=-1; if(d.y<0||d.y>cvs.height) d.vy*=-1;
-                ctx.fillStyle = 'rgba(0, 242, 255, 0.2)'; ctx.beginPath(); ctx.arc(d.x, d.y, 1.5, 0, 7); ctx.fill();
-                for(let j=i+1; j<dots.length; j++) {
-                    let d2 = dots[j], dist = Math.hypot(d.x-d2.x, d.y-d2.y);
-                    if(dist < 130) { ctx.strokeStyle = `rgba(188, 71, 255, ${0.15 - dist/800})`; ctx.lineWidth = 0.5; ctx.beginPath(); ctx.moveTo(d.x, d.y); ctx.lineTo(d2.x, d2.y); ctx.stroke(); }
-                }
-            });
-            requestAnimationFrame(render);
-        }
-        window.addEventListener('resize', init); init(); render();
-    </script>
+    <script type="module" src="auth-logic.js"></script>
+    <script src="login-particles.js"></script>
 </body>
 </html>
