@@ -3,43 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Arise Tech System | Neural OS</title>
+    <title>ARISE TECH | NEURAL SYSTEM</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Cairo:wght@600&display=swap" rel="stylesheet">
 </head>
 <body>
-
     <div id="login-screen" class="screen active">
-        <div class="login-container">
-            <h1 class="logo">ARISE<span>OS</span></h1>
-            <div class="input-group">
-                <input type="text" id="username" placeholder="USER ID" required>
-                <input type="password" id="password" placeholder="ACCESS KEY" required>
-            </div>
-            <button id="login-btn" onclick="handleLogin()">AUTHENTICATE</button>
-            <p id="status-msg">SYSTEM READY 🟢</p>
+        <div class="login-card">
+            <h1>ARISE<span> ACCESS</span></h1>
+            <input type="text" id="uid" value="song.arise" placeholder="ID">
+            <input type="password" id="pwd" value="1322010" placeholder="PASSWORD">
+            <button onclick="handleLogin()">EXECUTE LOGIN</button>
+            <p id="status">System Ready...</p>
         </div>
     </div>
 
     <div id="main-system" class="screen">
         <header>
-            <div class="sys-info">PROJECT: ARISE-TECH-SYSTEM</div>
-            <div class="user-stats">XP: <span id="xp-count">0</span></div>
+            <div class="brand">ARISE_OS</div>
+            <div class="xp">XP: <span id="xp-val">0</span></div>
         </header>
-        <main class="workspace">
-            <div class="editor-section">
-                <textarea id="code-editor" spellcheck="false" placeholder="# Write Python/Logic here..."></textarea>
-                <button class="run-btn" onclick="executeSystemCode()">RUN NEURAL SCRIPT</button>
-            </div>
-            <div class="console-section">
-                <div class="console-header">SYSTEM TERMINAL</div>
-                <div id="terminal-output">> Waiting for input...</div>
-            </div>
-        </main>
+        <div class="content">
+            <textarea id="editor" placeholder="# اكتب كود بايثون هنا..."></textarea>
+            <button id="run-btn" onclick="runPython()">RUN NEURAL SCRIPT</button>
+            <div id="console">> Waiting for input...</div>
+        </div>
     </div>
-
     <script src="script.js"></script>
 </body>
 </html>
