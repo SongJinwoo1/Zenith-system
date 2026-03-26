@@ -1,57 +1,50 @@
-// إعدادات فايربيز الرسمية من مشروعك
-const firebaseConfig = {
+const config = {
     apiKey: "AIzaSyAz8CIPuN8u_8dTWpF1A6Ab65pz045GSf8",
     databaseURL: "https://arise-tech-system-default-rtdb.firebaseio.com",
     projectId: "arise-tech-system"
 };
-
-firebase.initializeApp(firebaseConfig);
+firebase.initializeApp(config);
 const db = firebase.database();
+let py = null;
 
-// دالة الدخول الذكية
+// تحميل بايثون في الخلفية فور فتح الموقع
+async function loadPy() {
+    py = await loadPyodide();
+    console.log("Python Engine Loaded");
+}
+loadPy();
+
 function handleLogin() {
-    const user = document.getElementById('username').value.trim();
-    const pass = document.getElementById('password').value.trim();
-    const status = document.getElementById('status-msg');
-
-    status.innerText = "Verifying Credentials...";
-
-    // التحقق من حساب المالك
-    if (user === "song.arise" && pass === "1322010") {
-        initSession(user);
-    } else {
-        // التحقق من بقية المستخدمين في السحابة
-        db.ref('users/' + user).once('value').then(snap => {
-            if (snap.exists() && snap.val().pass === pass) {
-                initSession(user);
-            } else {
-                status.innerText = "ACCESS DENIED ❌";
-                status.style.color = "red";
-            }
-        });
-    }
+    const u = document.getElementById('uid').value;
+    const p = document.getElementById('pwd').value;
+    if(u === "song.arise" && p === "1322010") {
+        document.getElementById('login-screen').classList.remove('active');
+        document.getElementById('main-system').classList.add('active');
+        db.ref('users/song.arise/xp').on('value', s => { document.getElementById('xp-val').innerText = s.val() || 0; });
+    } else { alert("Error: Unauthorized Access"); }
 }
 
-function initSession(userId) {
-    document.getElementById('login-screen').classList.remove('active');
-    document.getElementById('main-system').classList.add('active');
+async function runPython() {
+    const code = document.getElementById('editor').value;
+    const con = document.getElementById('console');
+    const btn = document.getElementById('run-btn');
     
-    // مراقبة الـ XP من السحابة مباشرة
-    db.ref('users/' + userId + '/xp').on('value', snap => {
-        document.getElementById('xp-count').innerText = snap.val() || 0;
-    });
-}
-
-function executeSystemCode() {
-    const code = document.getElementById('code-editor').value;
-    const output = document.getElementById('terminal-output');
+    if(!py) { con.innerText = "> System: Engine Loading... Please wait."; return; }
     
-    output.innerHTML += `<br>> Executing Logic...`;
+    btn.innerText = "EXECUTING...";
+    con.innerText = "> Running script...";
     
-    // محاكاة التنفيذ وزيادة الـ XP في السحابة
-    if(code.length > 5) {
-        const user = "song.arise"; // للتجربة
-        db.ref('users/' + user + '/xp').transaction(xp => (xp || 0) + 10);
-        output.innerHTML += `<br><span style="color:#00ff00">> Success: Cloud Sync Complete +10 XP</span>`;
+    try {
+        py.runPython(`import sys, io; sys.stdout = io.StringIO()`);
+        await py.runPythonAsync(code);
+        let output = py.runPython("sys.stdout.getvalue()");
+        con.style.color = "#adff2f";
+        con.innerText = output || "> Success (No Output)";
+        // زيادة XP فعلياً في السحابة
+        db.ref('users/song.arise/xp').transaction(xp => (xp || 0) + 10);
+    } catch (err) {
+        con.style.color = "#ff4444";
+        con.innerText = "> ERROR: " + err + "\n\nنصيحة: تأكد من كتابة الكود بشكل صحيح أو تواصل مع الدعم.";
     }
+    btn.innerText = "RUN NEURAL SCRIPT";
 }
