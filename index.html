@@ -3,35 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ARISE TECH | NEURAL SYSTEM</title>
+    <title>ARISE TECH | NEURAL PLATFORM</title>
     <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Cairo:wght@600&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div id="login-screen" class="screen active">
-        <div class="login-card">
-            <h1>ARISE<span> ACCESS</span></h1>
-            <input type="text" id="uid" value="song.arise" placeholder="ID">
-            <input type="password" id="pwd" value="1322010" placeholder="PASSWORD">
-            <button onclick="handleLogin()">EXECUTE LOGIN</button>
-            <p id="status">System Ready...</p>
-        </div>
-    </div>
 
-    <div id="main-system" class="screen">
-        <header>
-            <div class="brand">ARISE_OS</div>
-            <div class="xp">XP: <span id="xp-val">0</span></div>
-        </header>
-        <div class="content">
-            <textarea id="editor" placeholder="# اكتب كود بايثون هنا..."></textarea>
-            <button id="run-btn" onclick="runPython()">RUN NEURAL SCRIPT</button>
-            <div id="console">> Waiting for input...</div>
+<div id="loading" class="loading"><div class="spinner"></div><div class="loading-text">جاري تشغيل النواة...</div></div>
+
+<div id="login-screen" class="portal screen active">
+    <div class="card">
+        <div class="card-content">
+            <h2 class="title-glitch">NIGHTMARE ACCESS</h2>
+            <p style="color: #888; margin-bottom: 25px;">منصة Arise Tech التعليمية</p>
+            <input type="text" id="login-user" placeholder="اسم العضوية" value="song.arise">
+            <input type="password" id="login-pass" placeholder="كلمة السر" value="1322010">
+            <button class="btn btn-primary" style="width:100%" onclick="handleLogin()">دخول المنصة ⚡</button>
         </div>
     </div>
-    <script src="script.js"></script>
+</div>
+
+<div id="main-screen" class="screen">
+    <header>
+        <div class="logo"><div class="logo-icon">🧠</div><span>ARISE_TECH</span></div>
+        <div class="user-stats">
+            <div class="stat-box"><div class="stat-label">المستخدم</div><div class="stat-value" id="display-username">-</div></div>
+            <div class="stat-box"><div class="stat-label">النقاط</div><div class="stat-value" id="display-xp">0</div></div>
+            <button class="btn btn-danger" onclick="location.reload()">خروج</button>
+        </div>
+    </header>
+    
+    <div class="main-container">
+        <div class="editor-section">
+            <div id="editor-container"></div>
+            <button class="btn btn-primary" style="width:100%; margin-top:15px; padding:15px;" onclick="runCode()">▶️ تشغيل الكود</button>
+            <div id="output">في انتظار الأوامر...</div>
+        </div>
+        
+        <div class="sidebar">
+            <div class="sidebar-card">
+                <div style="display:flex; align-items:center; gap:15px; margin-bottom:15px;">
+                    <div class="mentor-avatar">🎭</div>
+                    <div><div class="mentor-name">Ayanokouji</div><div style="font-size:12px; color:#888;">المساعد الذكي</div></div>
+                </div>
+                <div class="mentor-msg" id="mentor-msg">مرحباً بك. اكتب كود Python وسأقوم بتحليله لك.</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="script.js"></script>
 </body>
 </html>
