@@ -2,63 +2,188 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ARISE TECH | SECURITY CORE</title>
-    <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ARISE TECH | Neural Coding Platform</title>
     
-    <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
+    <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    
+    <!-- Monaco Editor -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
+    
+    <!-- Pyodide -->
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<div id="security-alert" class="security-toast"></div>
+    <!-- Security Toast -->
+    <div id="security-alert" class="security-toast"></div>
 
-<div id="login-screen" class="portal screen active">
-    <div class="card">
-        <div class="card-content">
-            <h2 class="title-glitch">ARISE ACCESS</h2>
-            <p id="attempts-info" style="color: #666; margin-bottom: 20px;">المحاولات المتاحة: 3</p>
-            
-            <input type="text" id="login-user" placeholder="هوية المستخدم" autocomplete="off">
-            <input type="password" id="login-pass" placeholder="مفتاح العبور">
-            
-            <button id="login-btn" class="btn btn-primary" style="width:100%" onclick="handleLogin()">تحقق من الهوية 🛡️</button>
-        </div>
-    </div>
-</div>
-
-<div id="main-screen" class="screen">
-    <header>
-        <div class="logo"><div class="logo-icon">🧠</div><span>ARISE_TECH</span></div>
-        <div class="user-stats">
-            <div class="stat-box"><div class="stat-label">المستخدم</div><div class="stat-value" id="display-username">-</div></div>
-            <div class="stat-box"><div class="stat-label">النقاط</div><div class="stat-value" id="display-xp">0</div></div>
-            <button class="btn btn-danger" onclick="location.reload()">تسجيل خروج</button>
-        </div>
-    </header>
-    
-    <div class="main-container">
-        <div class="editor-section">
-            <div id="editor-container"></div>
-            <button class="btn btn-primary" style="width:100%; margin-top:15px; padding:15px;" onclick="runCode()">▶️ تنفيذ النواة</button>
-            <div id="output">نظام Arise جاهز...</div>
-        </div>
-        
-        <div class="sidebar">
-            <div class="sidebar-card">
-                <div style="display:flex; align-items:center; gap:15px; margin-bottom:15px;">
-                    <div class="mentor-avatar">🎭</div>
-                    <div><div class="mentor-name">Ayanokouji</div><div style="font-size:12px; color:#888;">AI Assistant</div></div>
+    <!-- Login Screen -->
+    <div id="login-screen" class="portal screen active">
+        <div class="card">
+            <div class="card-content">
+                <h2 class="title-glitch">ARISE ACCESS</h2>
+                <p id="attempts-info">Enter your credentials to access the Neural Platform</p>
+                
+                <input type="text" id="login-user" placeholder="USERNAME" autocomplete="off" spellcheck="false">
+                <input type="password" id="login-pass" placeholder="PASSWORD" spellcheck="false">
+                
+                <button class="btn btn-primary" onclick="handleLogin()" id="login-btn">
+                    🛡️ VERIFY IDENTITY
+                </button>
+                
+                <div style="margin-top: 15px; font-size: 12px; color: #666;">
+                    <span id="system-status">🔒 System Ready</span>
                 </div>
-                <div class="mentor-msg" id="mentor-msg">مرحباً بك في المنطقة الآمنة.</div>
             </div>
         </div>
     </div>
-</div>
 
-<script src="script.js"></script>
+    <!-- Main Screen -->
+    <div id="main-screen" class="screen">
+        <header>
+            <div class="logo">
+                <div class="logo-icon">🧠</div>
+                <span>ARISE_TECH</span>
+            </div>
+            
+            <div class="user-stats">
+                <div class="stat-box">
+                    <div class="stat-label">USER</div>
+                    <div class="stat-value" id="display-username">-</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">LEVEL</div>
+                    <div class="stat-value" id="display-level">1</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">XP</div>
+                    <div class="stat-value" id="display-xp">0</div>
+                </div>
+                <button class="btn btn-danger" onclick="logout()">Logout</button>
+            </div>
+        </header>
+        
+        <div class="main-container">
+            <!-- EDITOR SECTION - FIXED -->
+            <div class="editor-wrapper">
+                <div class="section-title">
+                    <span>📝</span>
+                    <span>Neural Code Editor</span>
+                    <span id="editor-status" style="margin-right:auto; font-size:12px; color:var(--secondary);">Loading...</span>
+                </div>
+                
+                <!-- THIS IS THE FIXED EDITOR CONTAINER -->
+                <div id="editor-container">
+                    <div id="editor-fallback" style="display:none; padding:20px; color:#666;">
+                        Editor loading... Please wait
+                    </div>
+                </div>
+                
+                <button class="btn btn-primary" onclick="runCode()" id="run-btn" disabled>
+                    ⏳ WAITING FOR EDITOR...
+                </button>
+                
+                <div class="output-section">
+                    <div class="output-header">
+                        <span class="section-title" style="margin:0;">
+                            <span>📊</span>
+                            <span>OUTPUT</span>
+                        </span>
+                        <button class="btn btn-secondary" onclick="clearOutput()">Clear</button>
+                    </div>
+                    <div id="output">Click "Execute Code" to see results...</div>
+                </div>
+            </div>
+            
+            <!-- SIDEBAR -->
+            <div class="sidebar">
+                <div class="sidebar-card">
+                    <div class="mentor-header">
+                        <div class="mentor-avatar">🎭</div>
+                        <div>
+                            <div class="mentor-name">Ayanokouji Kiyotaka</div>
+                            <div class="mentor-role">AI Mentor</div>
+                        </div>
+                    </div>
+                    
+                    <div class="mentor-msg" id="mentor-msg">
+                        Welcome to Arise Tech. Write Python code and I'll help you fix any errors.
+                    </div>
+                    
+                    <div id="error-analysis" style="display:none;">
+                        <div class="error-details">
+                            <div style="color:var(--danger); margin-bottom:5px; font-weight:bold;">⚠️ ERROR DETAILS:</div>
+                            <div id="error-line" class="error-line"></div>
+                            <div id="error-type" style="margin-top:5px; color:#aaa;"></div>
+                        </div>
+                    </div>
+                    
+                    <a id="wa-link" class="wa-link" style="display:none;" target="_blank">
+                        <span>📱</span>
+                        <span>Request Support</span>
+                    </a>
+                </div>
+                
+                <div class="sidebar-card">
+                    <div class="section-title" style="margin-bottom:15px;">
+                        <span>📚</span>
+                        <span>History (Last 5)</span>
+                    </div>
+                    <div class="history-list" id="history-list">
+                        <div style="color:#666; text-align:center; padding:20px;">No history yet</div>
+                    </div>
+                </div>
+                
+                <div class="sidebar-card">
+                    <div class="section-title" style="margin-bottom:10px;">
+                        <span>💡</span>
+                        <span>Quick Tips</span>
+                    </div>
+                    <ul class="tips-list">
+                        <li>Use <code>print()</code> to show results</li>
+                        <li>Each run = 20 XP points</li>
+                        <li>100 XP = Level Up</li>
+                        <li>Type <code>print(song.arise)</code> for Admin</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Panel -->
+    <div id="admin-overlay" class="admin-overlay" onclick="closeAdmin()"></div>
+    <div id="admin-panel" class="admin-panel">
+        <button class="close-admin" onclick="closeAdmin()">×</button>
+        <h2 class="admin-title">⚡ COMMAND CENTER ⚡</h2>
+        <div style="text-align:center; color:#888; margin-bottom:20px; font-size:14px;">Owner Administration</div>
+        
+        <div class="admin-form">
+            <input type="text" id="new-username" placeholder="New Username">
+            <input type="password" id="new-password" placeholder="Password">
+            <select id="new-role" style="margin-bottom:15px; padding:12px; background:#000; color:#fff; border:1px solid #333; border-radius:8px; width:100%;">
+                <option value="user">👤 Regular User</option>
+                <option value="admin">🔧 Co-Admin</option>
+            </select>
+            <button class="btn btn-success" onclick="addUser()">➕ Add User</button>
+        </div>
+        
+        <div class="user-list" id="user-list"></div>
+    </div>
+
+    <!-- Level Up -->
+    <div id="levelup-notif" class="levelup-notif">
+        <div class="levelup-title">🎉 LEVEL UP! 🎉</div>
+        <div id="levelup-text">You reached Level 2!</div>
+    </div>
+
+    <script src="script.js"></script>
 </body>
 </html>
