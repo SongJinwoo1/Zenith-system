@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arise Tech System | Neural OS</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div id="login-screen" class="screen active">
+        <div class="login-container">
+            <h1 class="logo">ARISE<span>OS</span></h1>
+            <div class="input-group">
+                <input type="text" id="username" placeholder="USER ID" required>
+                <input type="password" id="password" placeholder="ACCESS KEY" required>
+            </div>
+            <button id="login-btn" onclick="handleLogin()">AUTHENTICATE</button>
+            <p id="status-msg">SYSTEM READY 🟢</p>
+        </div>
+    </div>
+
+    <div id="main-system" class="screen">
+        <header>
+            <div class="sys-info">PROJECT: ARISE-TECH-SYSTEM</div>
+            <div class="user-stats">XP: <span id="xp-count">0</span></div>
+        </header>
+        <main class="workspace">
+            <div class="editor-section">
+                <textarea id="code-editor" spellcheck="false" placeholder="# Write Python/Logic here..."></textarea>
+                <button class="run-btn" onclick="executeSystemCode()">RUN NEURAL SCRIPT</button>
+            </div>
+            <div class="console-section">
+                <div class="console-header">SYSTEM TERMINAL</div>
+                <div id="terminal-output">> Waiting for input...</div>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
