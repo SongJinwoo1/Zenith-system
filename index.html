@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ARISE TECH | NEURAL PLATFORM</title>
+    <title>ARISE TECH | SECURITY CORE</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Cairo:wght@400;700&display=swap" rel="stylesheet">
     
@@ -14,16 +14,18 @@
 </head>
 <body>
 
-<div id="loading" class="loading"><div class="spinner"></div><div class="loading-text">جاري تشغيل النواة...</div></div>
+<div id="security-alert" class="security-toast"></div>
 
 <div id="login-screen" class="portal screen active">
     <div class="card">
         <div class="card-content">
-            <h2 class="title-glitch">NIGHTMARE ACCESS</h2>
-            <p style="color: #888; margin-bottom: 25px;">منصة Arise Tech التعليمية</p>
-            <input type="text" id="login-user" placeholder="اسم العضوية" value="song.arise">
-            <input type="password" id="login-pass" placeholder="كلمة السر" value="1322010">
-            <button class="btn btn-primary" style="width:100%" onclick="handleLogin()">دخول المنصة ⚡</button>
+            <h2 class="title-glitch">ARISE ACCESS</h2>
+            <p id="attempts-info" style="color: #666; margin-bottom: 20px;">المحاولات المتاحة: 3</p>
+            
+            <input type="text" id="login-user" placeholder="هوية المستخدم" autocomplete="off">
+            <input type="password" id="login-pass" placeholder="مفتاح العبور">
+            
+            <button id="login-btn" class="btn btn-primary" style="width:100%" onclick="handleLogin()">تحقق من الهوية 🛡️</button>
         </div>
     </div>
 </div>
@@ -34,24 +36,24 @@
         <div class="user-stats">
             <div class="stat-box"><div class="stat-label">المستخدم</div><div class="stat-value" id="display-username">-</div></div>
             <div class="stat-box"><div class="stat-label">النقاط</div><div class="stat-value" id="display-xp">0</div></div>
-            <button class="btn btn-danger" onclick="location.reload()">خروج</button>
+            <button class="btn btn-danger" onclick="location.reload()">تسجيل خروج</button>
         </div>
     </header>
     
     <div class="main-container">
         <div class="editor-section">
             <div id="editor-container"></div>
-            <button class="btn btn-primary" style="width:100%; margin-top:15px; padding:15px;" onclick="runCode()">▶️ تشغيل الكود</button>
-            <div id="output">في انتظار الأوامر...</div>
+            <button class="btn btn-primary" style="width:100%; margin-top:15px; padding:15px;" onclick="runCode()">▶️ تنفيذ النواة</button>
+            <div id="output">نظام Arise جاهز...</div>
         </div>
         
         <div class="sidebar">
             <div class="sidebar-card">
                 <div style="display:flex; align-items:center; gap:15px; margin-bottom:15px;">
                     <div class="mentor-avatar">🎭</div>
-                    <div><div class="mentor-name">Ayanokouji</div><div style="font-size:12px; color:#888;">المساعد الذكي</div></div>
+                    <div><div class="mentor-name">Ayanokouji</div><div style="font-size:12px; color:#888;">AI Assistant</div></div>
                 </div>
-                <div class="mentor-msg" id="mentor-msg">مرحباً بك. اكتب كود Python وسأقوم بتحليله لك.</div>
+                <div class="mentor-msg" id="mentor-msg">مرحباً بك في المنطقة الآمنة.</div>
             </div>
         </div>
     </div>
