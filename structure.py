@@ -10,11 +10,10 @@ load_dotenv()
 TOKEN = os.getenv("BOT_TOKEN")
 bot = telebot.TeleBot(TOKEN)
 
-# ─── 2. مـصـفـوفة الـهـوية الـبـصـريـة (المحدثة بـروابـطك الـجديدة) ───
-# تم تصحيح الروابط لتعمل مباشرة (Raw) داخل التلجرام
+# ─── 2. مـصـفـوفة الـهـوية الـبـصـريـة (المحدثة) ───
 SECTION_LOGOS = {
     "MAIN":      "https://raw.githubusercontent.com/SongJinwoo1/Structure-01/main/IMG_4782.jpeg",
-    "RECEPTION": "https://raw.githubusercontent.com/SongJinwoo1/Structure-01/main/IMG_4789.jpeg",
+    "RECEPTION": "https://raw.githubusercontent.com/SongJinwoo1/Structure-01/main/IMG_4793.jpeg", # الرابط الجديد
     "LOGIC":     "https://raw.githubusercontent.com/SongJinwoo1/Structure-01/main/IMG_4790.jpeg",
     "SECURITY":  "https://raw.githubusercontent.com/SongJinwoo1/Structure-01/main/IMG_4791.jpeg",
     "ARCHIVE":   "https://raw.githubusercontent.com/SongJinwoo1/Structure-01/main/IMG_4792.jpeg",
@@ -39,8 +38,7 @@ def send_interface(chat_id, text, reply_markup=None, logo_key="MAIN"):
     photo_url = SECTION_LOGOS.get(logo_key, SECTION_LOGOS["MAIN"])
     try:
         bot.send_photo(chat_id, photo_url, caption=text, reply_markup=reply_markup, parse_mode='Markdown')
-    except Exception as e:
-        print(f"Error sending photo: {e}")
+    except:
         bot.send_message(chat_id, text, reply_markup=reply_markup, parse_mode='Markdown')
 
 # ─── 5. بـروتـوكـول الـتـرحـيـب (/start) ───
@@ -66,12 +64,27 @@ def handle_requests(message):
     txt = message.text
 
     if txt == BTN_RECEPTION:
-        msg = (
-            "*//ـ قـسـم الاسـتـقـبال ╎ 𝐑𝐄𝐂𝐄𝐏𝐓𝐈𝐎𝐍*\n\n"
-            "\"مرحباً بك في بوابـة أريـس تـك. السيادة تبدأ من هنا.\"\n\n"
-            "• [Welcome Gate](https://songjinwoo1.github.io/Bot-Song-Jin-Woo/)"
+        reception_text = (
+            "//ـ ســيـسـتـم أريــس تــك ╎ *𝐀𝐑𝐈𝐒𝐄 𝐓𝐄𝐂𝐇* ⚖️\n"
+            "— *𝐒𝐭𝐫𝐚𝐭𝐞𝐠𝐢𝐜 𝐈𝐧𝐭𝐞𝐥𝐥𝐢𝐠𝐞𝐧𝐜𝐞* ⚔️ *𝐓𝐞𝐜𝐡 n𝐢𝐜𝐚𝐥 𝐒𝐮𝐩𝐞𝐫𝐢𝐨𝐫𝐢𝐭𝐲* —\n\n"
+            "\"الجميع مجرد أدوات، والمبرمج الحق هو من يملك الكود الذي يتحكم في تلك الأدوات. نحن لا نُعلمك، نحن نُعيد برمجتك لتسود.\"\n\n"
+            "🌑 ━━━━━━━━━━━━━━ 🌑\n\n"
+            "✦ *روابـط الـسـيـادة (𝐒𝐭𝐫𝐚𝐭𝐞𝐠𝐢𝐜   𝐋𝐢𝐧𝐤𝐬):*\n"
+            "• 💠 [𝐖𝐞𝐥𝐜𝐨𝐦𝐞   𝐆𝐚𝐭𝐞](https://songjinwoo1.github.io/Bot-Song-Jin-Woo/)\n"
+            "• 🐙 𝐆𝐢𝐭𝐇𝐮𝐛 𝐇𝐮𝐛 ↠ `[🔒 Restricted Access]`\n"
+            "*(المستودع متاح حالياً للنخبة فقط؛ سيتم فتحه تدريجياً مع اكتمال القوة).* \n\n"
+            "🛠️ ━━━━━━━━━━━━━━ 🛠️\n\n"
+            "✦ *الـمـسـارات الـمـدعـومـة:*\n"
+            "◈ الـويب ◈ الـذكاء ◈ الأمـن ◈ الـتطبيقات\n\n"
+            "🏆 ━━━━━━━━━━━━━━ 🏆\n\n"
+            "✦ *الـقـيـادة (𝐒𝐲𝐬𝐭𝐞𝐦   𝐇𝐢𝐞𝐫𝐚𝐫𝐜𝐡𝐲):*\n"
+            "• 𝐒𝐭𝐫𝐚𝐭𝐞𝐠𝐢𝐜 𝐋𝐞𝐚𝐝 ♜ ↠ *𝑺𝒐𝒏𝒈 𝑱𝒊𝒏 𝑾𝒐𝒐*\n"
+            "• 𝐒𝐨𝐯𝐞𝐫𝐞𝐢𝐠𝐧 𝐄𝐱𝐞𝐜𝐮𝐭𝐨𝐫 👑 ↠ ⟨*𝙺𝚒𝚢𝚘𝚝𝚊𝚔𝚊 𖦹 𝙰𝚢𝚊𝚗𝚘𝚔𝚘𝚞𝚓𝚒*⟩\n\n"
+            "🔗 ━━━━━━━━━━━━━━ 🔗\n"
+            "𝐒𝐢𝐧𝐜𝐞 𝟐𝟎𝟐𝟔 ╎ 𝐀𝐑𝐈𝐒𝐄 𝐓𝐄𝐂𝐇 ╎ *𝐋𝐞𝐯𝐞𝐥 𝐔𝐩 𝐘𝐨𝐮𝐫 𝐑𝐞𝐚𝐥𝐢𝐭𝐲* 🌌"
         )
-        send_interface(cid, msg, logo_key="RECEPTION")
+        send_interface(cid, reception_text, logo_key="RECEPTION")
+
     elif txt == BTN_LOGIC:
         send_interface(cid, "*//ـ مُـخـتـبـر الـمـنـطـق ╎ 𝐋𝐎𝐆𝐈𝐂   𝐋𝐀𝐁*", logo_key="LOGIC")
     elif txt == BTN_SEC:
@@ -83,12 +96,12 @@ def handle_requests(message):
     elif txt == BTN_VISUAL:
         send_interface(cid, "*//ـ واجـهة الـنـظام ╎ 𝐕𝐈𝐒𝐔𝐀𝐋   𝐀𝐑𝐂𝐀𝐍𝐄*", logo_key="VISUAL")
     elif txt == BTN_STRATEGY:
-        tips = ["\"المنطق سلاح.\"", "\"السيادة لمن يملك البيانات.\"", "\"الهدوء هو قمة القوة.\""]
+        tips = ["\"المنطق سلاح.\"", "\"الهدوء هو قمة القوة.\""]
         send_interface(cid, f"*//ـ غـرفـة الاسـتـشـارة ╎ 𝐒𝐓𝐑𝐀𝐓𝐄𝐆𝐘   𝐑𝐎𝐎𝐌*\n\n{random.choice(tips)}", logo_key="STRATEGY")
     elif txt == BTN_DEV:
         markup = types.InlineKeyboardMarkup()
         markup.add(types.InlineKeyboardButton("𝑺𝒐𝒏𝒈 𝑱𝒊𝒏 𝑾𝒐𝒐", url="https://wa.me/96597805334"))
-        markup.add(types.InlineKeyboardButton("𝙺𝚒𝚢𝚘𝚝𝚊𝚔𝚊 𝙰𝚢𝚊𝒏𝚘𝚔𝒐𝒖𝒋𝚒", url="https://wa.me/201055719273"))
+        markup.add(types.InlineKeyboardButton("𝙺𝚒𝚢𝚘𝚝𝚊𝚔𝚊 𝙰𝚢𝚊𝚗𝚘𝚔𝚘𝚞𝚓𝚒", url="https://wa.me/201055719273"))
         send_interface(cid, "*//ـ قـناة الاتـصال الـعـلـيا ╎ 𝐇𝐈𝐆𝐇   𝐂𝐎𝐌𝐌𝐀𝐍𝐃*", markup, logo_key="COMMAND")
 
 if __name__ == "__main__":
