@@ -2,156 +2,140 @@ import os
 import telebot
 from telebot import types
 import random
-# تأكد من تثبيت المكتبة: pip install python-dotenv
-from dotenv import load_dotenv 
+import time
+from dotenv import load_dotenv
 
-# ─── 1. بـروتـوكـول الأمـان (إخفاء التوكن) ───
+# ─── 1. بـروتـوكـول الـتـشـغـيـل والأمـان ───
 load_dotenv()
 TOKEN = os.getenv("BOT_TOKEN")
 
 if not TOKEN:
-    print("⚠️ خـطأ حـرج: لـم يتم الـعثور على مـفتاح BOT_TOKEN فـي مـلف .env")
+    print("⚠️ خـطأ: لـم يتم الـعثور على BOT_TOKEN")
     exit()
 
 bot = telebot.TeleBot(TOKEN)
 
-# ─── 2. الـثـوابـت الـنـصـيـة (لـمنع أخطاء الـتطابق) ───
-LOGO_URL = "https://via.placeholder.com/800x400.png?text=STRUCTURE+01+ARISE+TECH"
+# ─── 2. مـصـفـوفة الـهـوية الـبـصـريـة (𝐑𝐚𝐰   𝐔𝐑𝐋𝐬) ───
+# تم تحويل الروابط لتعمل مباشرة داخل التلجرام
+SECTION_LOGOS = {
+    "MAIN":      "https://raw.githubusercontent.com/SongJinwoo1/Structure-01/main/IMG_4782.jpeg",
+    "RECEPTION": "https://raw.githubusercontent.com/SongJinwoo1/Structure-01/main/IMG_4793.jpeg",
+    "LOGIC":     "https://raw.githubusercontent.com/SongJinwoo1/Structure-01/main/IMG_4794.jpeg",
+    "AI":        "https://raw.githubusercontent.com/SongJinwoo1/Structure-01/main/IMG_4794.jpeg",
+    "SECURITY":  "https://raw.githubusercontent.com/SongJinwoo1/Structure-01/main/IMG_4791.jpeg",
+    "ARCHIVE":   "https://raw.githubusercontent.com/SongJinwoo1/Structure-01/main/IMG_4792.jpeg",
+    "ENGINE":    "https://raw.githubusercontent.com/SongJinwoo1/Structure-01/main/IMG_4794.jpeg",
+    "STRATEGY":  "https://raw.githubusercontent.com/SongJinwoo1/Structure-01/main/IMG_4782.jpeg" # مؤقت لـ أيانوكوجي
+}
 
-BTN_LOGIC  = '🐍 مُـخـتـبـر الـمـنـطـق ╎ 𝐋𝐎𝐆𝐈𝐂   𝐋𝐀𝐁'
-BTN_AI     = '🤖 وكـلاء الـذكاء ╎ 𝐀𝐈   𝐀𝐠𝐞𝐧𝐭𝐬'
-BTN_SEC    = '🛡️ أمن الـبيانات ╎ 𝐒𝐞𝐜𝐮𝐫𝐢𝐭𝐲'
-BTN_DB     = '📂 الأرشـفة ╎ 𝐃𝐚𝐭𝐚𝐛𝐚𝐬𝐞'
-BTN_ENGINE = '⚙️ مـحرك 𝐀𝐑𝐈𝐒𝐄 ╎ 𝐄𝐧𝐠𝐢𝐧𝐞'
-BTN_WEB    = '🌐 مـنطق الـويب ╎ 𝐖𝐞𝐛   𝐋𝐨𝐠𝐢𝐜'
-BTN_UI     = '🎨 واجـهة الـنظام ╎ 𝐔𝐈/𝐔𝐗'
-BTN_TIPS   = '🧠 اسـتـشارة الـنـظام'
-BTN_DEV    = '👤 الـتواصل مـع الـقـيادة'
-BTN_BACK   = '↩️ الـعودة لـلقائمة'
-BTN_EXAM   = '🏁 الإخـتـبار 𝟏𝟎𝟎'
+# ─── 3. الـثـوابـت والـأزرار ───
+BTN_LOGIC     = '🐍 مُـخـتـبـر الـمـنـطـق ╎ 𝐋𝐎𝐆𝐈𝐂   𝐋𝐀𝐁'
+BTN_RECEPTION = '🤝 قـسـم الاسـتـقـبال ╎ 𝐑𝐄𝐂𝐄𝐏𝐓𝐈𝐎𝐍'
+BTN_AI        = '🤖 وكـلاء الـذكاء ╎ 𝐀𝐈   𝐀𝐠𝐞𝐧𝐭𝐬'
+BTN_SEC       = '🛡️ أمن الـبيانات ╎ 𝐒𝐞𝐜𝐮𝐫𝐢𝐭𝐲'
+BTN_DB        = '📂 الأرشـفة ╎ 𝐃𝐚تا𝐛𝐚𝐬𝐞'
+BTN_ENGINE    = '⚙️ مـحرك 𝐀𝐑𝐈𝐒𝐄 ╎ 𝐄𝐧𝐠𝐢𝐧𝐞'
+BTN_TIPS      = '🧠 اسـتـشارة الـنـظام'
+BTN_DEV       = '👤 الـتواصل مـع الـقـيادة'
+BTN_BACK      = '↩️ الـعودة لـلقائمة'
 
-DAY_01 = '◈ الـيوم 𝟎𝟏'
-DAY_02 = '◈ الـيوم 𝟎𝟐'
-DAY_03 = '◈ الـيوم 𝟎𝟑'
-DAY_50 = '◈ الـيوم 𝟓𝟎'
-DAY_99 = '◈ الـيوم 𝟗𝟗'
+# تبريد الصور لضمان سلاسة الواجهة (كل 4.8 ساعة)
+COOLDOWN_SECONDS = (24 / 5) * 3600 
+user_last_photo_time = {}
 
-# قـائمة الأقـسام الـتي قـيد الـتطوير
-UNDER_DEVELOPMENT = [BTN_AI, BTN_SEC, BTN_DB, BTN_ENGINE, BTN_WEB, BTN_UI]
-
-# ─── 3. الـمـحـرك الـرئـيـسـي لـلإرسـال ───
-def send_with_logo(chat_id, text, reply_markup=None):
-    """بـروتـوكول إرسـال الـهوية الـبصرية مـع صـائد الأخـطاء"""
-    try:
-        bot.send_photo(chat_id, LOGO_URL, caption=text, reply_markup=reply_markup, parse_mode='Markdown')
-    except Exception as e:
-        print(f"⚠️ [System Log] Error in send_with_logo: {e}")
+# ─── 4. مـحـرك الإرسـال الـتـقـني ───
+def send_interface(chat_id, text, reply_markup=None, logo_key="MAIN", force_photo=False):
+    current_time = time.time()
+    last_time = user_last_photo_time.get(chat_id, 0)
+    photo_url = SECTION_LOGOS.get(logo_key, SECTION_LOGOS["MAIN"])
+    
+    # إرسال صورة في حالة البداية أو انتهاء وقت التبريد
+    if force_photo or (current_time - last_time >= COOLDOWN_SECONDS):
+        try:
+            bot.send_photo(chat_id, photo_url, caption=text, reply_markup=reply_markup, parse_mode='Markdown')
+            if not force_photo: user_last_photo_time[chat_id] = current_time
+        except Exception as e:
+            bot.send_message(chat_id, text, reply_markup=reply_markup, parse_mode='Markdown')
+    else:
         bot.send_message(chat_id, text, reply_markup=reply_markup, parse_mode='Markdown')
 
-# ─── 4. بـروتـوكـول الـتـرحـيـب ───
+# ─── 5. بـروتـوكـول الـتـرحـيـب (/start) ───
 @bot.message_handler(commands=['start'])
 def welcome(message):
     markup = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
-    
-    markup.add(BTN_LOGIC)
-    markup.add(BTN_AI, BTN_SEC, BTN_DB, BTN_ENGINE, BTN_WEB, BTN_UI)
+    markup.add(BTN_LOGIC, BTN_RECEPTION)
+    markup.add(BTN_AI, BTN_SEC, BTN_DB, BTN_ENGINE)
     markup.add(BTN_TIPS, BTN_DEV)
-    
-    # تنظيف اسم المستخدم لتجنب أخطاء الـ Markdown
-    safe_name = str(message.from_user.first_name).replace('_', '\\_').replace('*', '\\*').replace('[', '\\[')
     
     welcome_text = (
         f"*//ـ الـتـعـرف عـلى الـهـوية ╎ 𝐒𝐓𝐑𝐔𝐂𝐓𝐔𝐑𝐄   𝟎𝟏*\n\n"
-        f"◈ الـمـستخـدم: `{safe_name}`\n"
-        f"◈ الـرتبـة: `[C-Class Cadet]`\n"
-        f"◈ الـتـسلـسل: `ID-{message.from_user.id}`\n\n"
-        "\"المنطق هو الحقيقة الوحيدة هنا. اختر مسارك بعناية.\""
+        f"◈ الـمـستخـدم: `{message.from_user.first_name}`\n"
+        f"◈ الـرتبـة: `[C-Class Cadet]`\n\n"
+        "\"المنطق هو الحقيقة الوحيدة هنا. اختر مسار التطوير.\""
     )
-    send_with_logo(message.chat.id, welcome_text, markup)
+    send_interface(message.chat.id, welcome_text, markup, logo_key="MAIN", force_photo=True)
 
-# ─── 5. مـعـالـج الـنـصـوص (مـؤمـن لـلنـصوص فـقط) ───
+# ─── 6. مـعـالـج الـأوامـر والـأقـسـام ───
 @bot.message_handler(content_types=['text'])
 def handle_requests(message):
-    text = message.text
-    
-    # --- قـسـم مُـخـتـبـر الـمـنـطـق ---
-    if text == BTN_LOGIC:
-        day_markup = types.ReplyKeyboardMarkup(row_width=3, resize_keyboard=True)
-        btns = [
-            types.KeyboardButton(DAY_01), types.KeyboardButton(DAY_02), 
-            types.KeyboardButton(DAY_03), types.KeyboardButton(DAY_50), 
-            types.KeyboardButton(DAY_99), types.KeyboardButton(BTN_EXAM)
+    cid = message.chat.id
+    txt = message.text
+
+    # --- 🤝 قـسـم الاسـتـقـبـال (الجديد) ---
+    if txt == BTN_RECEPTION:
+        reception_msg = (
+            "//ـ ســيـسـتـم أريــس تــك ╎ 𝐀𝐑𝐈𝐒𝐄 𝐓𝐄𝐂𝐇 ⚖️\n"
+            "— 𝐒𝐭𝐫𝐚𝐭𝐞𝐠𝐢𝐜 𝐈𝐧𝐭𝐞𝐥𝐥𝐢𝐠𝐞𝐧𝐜𝐞 ⚔️ 𝐓𝐞𝐜𝐡𝐧𝐢𝐜𝐚𝐥 𝐒𝐮𝐩𝐞𝐫𝐢𝐨𝐫𝐢𝐭𝐲 —\n\n"
+            "\"الجميع مجرد أدوات، والمبرمج الحق هو من يملك الكود الذي يتحكم في تلك الأدوات.\"\n\n"
+            "🌑 ━━━━━━━━━━━━━━ 🌑\n\n"
+            "✦ روابـط الـسـيـادة (𝐒𝐭𝐫𝐚𝐭𝐞𝐠𝐢𝐜   𝐋𝐢𝐧𝐤𝐬):\n"
+            "• 💠 [𝐖𝐞𝐥𝐜𝐨𝐦𝐞   𝐆𝐚𝐭𝐞](https://songjinwoo1.github.io/Bot-Song-Jin-Woo/)\n"
+            "• 🐙 𝐆𝐢𝐭𝐇𝐮𝐛 𝐇𝐮𝐛 ↠ `[🔒 Restricted Access]`\n\n"
+            "🏆 𝐒𝐲𝐬𝐭𝐞𝐦   𝐇𝐢𝐞𝐫𝐚𝐫𝐜𝐡𝐲:\n"
+            "• 𝐒𝐭𝐫𝐚𝐭𝐞𝐠𝐢𝐜 𝐋𝐞𝐚𝐝 ♜ ↠ 𝑺𝒐𝒏𝒈 𝑱𝒊𝒏 𝑾𝒐𝒐\n"
+            "• 𝐒𝐨𝐯𝐞𝐫𝐞𝐢𝐠𝐧 𝐄𝐱𝐞𝐜𝐮𝐭𝐨𝐫 👑 ↠ ⟨𝙺𝚒𝚢𝚘𝚝𝚊𝚔𝚊 𖦹 𝙰𝚢𝚊𝚗𝚘𝚔𝚘𝚞𝚓𝚒⟩"
+        )
+        send_interface(cid, reception_msg, logo_key="RECEPTION")
+
+    # --- 🧠 مُـخـتـبـر الـمـنـطـق ---
+    elif txt == BTN_LOGIC:
+        logic_msg = (
+            "*//ـ مُـخـتـبـر الـمـنـطـق ╎ 𝐋𝐎𝐆𝐈𝐂   𝐋𝐀𝐁*\n"
+            "\"هنا يتم بناء عقل النظام. النتائج هي المعيار الوحيد.\""
+        )
+        send_interface(cid, logic_msg, logo_key="LOGIC")
+
+    # --- 🛡️ أمـن الـبـيـانـات ---
+    elif txt == BTN_SEC:
+        send_interface(cid, "*//ـ مـركـز الـحـمـاية ╎ 𝐒𝐄𝐂𝐔𝐑𝐈𝐓𝐘   𝐂𝐄𝐍𝐓𝐄𝐑*", logo_key="SECURITY")
+
+    # --- 📂 الأرشفة ---
+    elif txt == BTN_DB:
+        send_interface(cid, "*//ـ الأرشـيـف الـتـقـني ╎ 𝐓𝐇𝐄   𝐀𝐑𝐂𝐇𝐈𝐕𝐄*", logo_key="ARCHIVE")
+
+    # --- ⚙️ المحرك ---
+    elif txt == BTN_ENGINE:
+        send_interface(cid, "*//ـ نـواة الـتـطويـر ╎ 𝐃𝐄𝐕𝐄𝐋𝐎𝐏𝐌𝐄𝐍𝐓   𝐂𝐎𝐑𝐄*", logo_key="ENGINE")
+
+    # --- 🧠 الاستشارة الاستراتيجية ---
+    elif txt == BTN_TIPS:
+        tips = [
+            "\"أن تكون الأقوى لا يعني أن تصرخ، بل أن تصمت بذكاء.\"",
+            "\"العاطفة ثغرة في الكود.. تخلص منها.\"",
+            "\"المنطق هو السلاح الذي لا يخطئ.\""
         ]
-        day_markup.add(*btns)
-        day_markup.add(types.KeyboardButton(BTN_BACK))
-        
-        lab_description = (
-            "*//ـ مُـخـتـبـر الـمـنـطـق ╎ 𝐋𝐎𝐆𝐈𝐂   𝐋𝐀𝐁 🧠*\n"
-            "— 𝐏𝐲𝐭𝐡𝐨𝐧   𝐌𝐚𝐬𝐭𝐞𝐫𝐲 ⚔️ 𝐀.𝐈   𝐄𝐧𝐠𝐢𝐧𝐞𝐞𝐫𝐢𝐧𝐠 —\n\n"
-            "\"هنا يتم تطوير عقل النظام وبناء المحركات الذكية.\"\n\n"
-            "✦ *نـطـاق الـعـمـل (𝐓𝐞𝐜𝐡   𝐒𝐭𝐚𝐜𝐤):*\n"
-            "   ◈ لغة المنطق (Python Scripts).\n"
-            "   ◈ بناء المحركات (Engine Architecture).\n"
-            "   ◈ وكلاء الذكاء (AI Agents).\n\n"
-            "📊 *𝐒𝐲𝐬𝐭𝐞𝐦   𝐒𝐭𝐚𝐭𝐮𝐬   𝐑𝐞𝐩𝐨𝐫𝐭:*\n"
-            "• 🟢 𝐄𝐧𝐠𝐢𝐧𝐞   𝐒𝐭𝐚𝐭𝐮𝐬: 𝐎𝐩𝐞𝐫𝐚𝐭𝐢𝐨𝐧𝐚𝐥\n\n"
-            "⚠️ \"المنطق هو السلاح الأقوى.. ابدأ بالبرمجة.\""
-        )
-        send_with_logo(message.chat.id, lab_description, day_markup)
+        send_interface(cid, f"*//ـ غـرفة الاسـتـشـارة 🧠*\n\n{random.choice(tips)}", logo_key="STRATEGY")
 
-    # --- مـحتوى الـيوم الأول ---
-    elif text == DAY_01:
-        day1_text = (
-            "*//ـ الـمـهـمة 𝟎𝟏 ╎ 𝐈𝐍𝐈𝐓𝐈𝐀𝐋𝐈𝐙𝐀𝐓𝐈𝐎𝐍*\n\n"
-            "✦ الـمـهمـة ↞ [تحليل الأساسيات](https://www.youtube.com/watch?v=MWbucf-IgSI)\n"
-            "✦ الـمـسار ↞ [بـروتوكول الـبايثون](https://bit.ly/3S2S1qT)\n\n"
-            "⏰ *مـهـلـة الـتـنـفـيـذ:* 𝟒𝟖 سـاعـة."
-        )
-        send_with_logo(message.chat.id, day1_text)
-
-    # --- الأقـسام قـيد الـتطوير والـأيام الـمغـلـقة ---
-    elif text in UNDER_DEVELOPMENT or text in [DAY_02, DAY_03, DAY_50, DAY_99]:
-        locked_tips = [
-            "\"الاستعجال هو ثغرة في منطق الضعفاء.. الزم مكانك.\"",
-            "\"نحن لا نمنح المعرفة لمن لا يستحقها.. أتمم ما قبله أولاً.\"",
-            "\"الصبر هو معالجة هادئة لبيانات الواقع.\""
-        ]
-        response = (
-            "*//ـ حـالة الـوصـول ╎ 𝐔𝐍𝐃𝐄𝐑   𝐂𝐎𝐍𝐒𝐓𝐑𝐔𝐂𝐓𝐈𝐎𝐍*\n\n"
-            f"\"{random.choice(locked_tips)}\"\n\n"
-            "⚠️ هذا القطاع قيد التشفير البرمجي حالياً وسيتم فتحه قريباً."
-        )
-        send_with_logo(message.chat.id, response)
-
-    # --- الإخـتبـار الـنهائي 100 ---
-    elif text == BTN_EXAM:
-        send_with_logo(message.chat.id, "*//ـ بـوابـة الـنـخـبة ╎ 𝐄𝐗𝐀𝐌   𝟏𝟎𝟎*\n\n🔒 **الـحـالة:** مـحـظـور.\nيـتـطلب الوصول نـسبة تـوافق 100% مع الـمختبر.")
-
-    # --- الـتواصل مـع الـقيادة ---
-    elif text == BTN_DEV:
-        markup = types.InlineKeyboardMarkup(row_width=1)
-        btn_jin = types.InlineKeyboardButton("𝑺𝒐𝒏𝒈 𝑱𝒊𝒏 𝑾𝒐𝒐 ╎ Strategic Overseer", url="https://wa.me/96597805334")
-        btn_kyo = types.InlineKeyboardButton("𝙺𝚒𝚢𝚘𝚝𝚊𝚔𝚊 𝙰𝚢𝚊𝚗𝚘𝚔𝚘𝚞𝚓𝚒 ╎ Executor", url="https://wa.me/201055719273")
-        markup.add(btn_jin, btn_kyo)
-        send_with_logo(message.chat.id, "*//ـ قـناة الاتـصال الـعـلـيا ╎ 𝐇𝐢𝐠𝐡   𝐂𝐨𝐦𝐦𝐚𝐧𝐝*", markup)
-
-    # --- اسـتـشارات عشوائية ---
-    elif text == BTN_TIPS:
-        tips = ["\"المنطق هو السلاح الأقوى.\"", "\"العاطفة لا تبني كوداً.\"", "\"ابحث بنفسك أولاً.\""]
-        send_with_logo(message.chat.id, f"\" {random.choice(tips)} \"")
+    # --- 👤 التواصل ---
+    elif txt == BTN_DEV:
+        markup = types.InlineKeyboardMarkup()
+        markup.add(types.InlineKeyboardButton("𝑺𝒐𝒏𝒈 𝑱𝒊𝒏 𝑾𝒐𝒐", url="https://wa.me/96597805334"))
+        markup.add(types.InlineKeyboardButton("𝙺𝚒𝚢𝚘𝚝𝚊𝚔𝚊 𝙰𝚢𝚊𝚗𝚘𝚔𝚘𝚞𝚓𝚒", url="https://wa.me/201055719273"))
+        send_interface(cid, "*//ـ قـناة الاتـصال الـعـلـيا ╎ 𝐇𝐢𝐠𝐡   𝐂𝐨𝐦𝐦𝐚𝐧𝐝*", markup)
 
     # --- الـعودة ---
-    elif text == BTN_BACK:
+    elif txt == BTN_BACK:
         welcome(message)
-
-    # --- 6. صـائد الأوامـر الـمـجـهـولـة (Fallback) ---
-    else:
-        fallback_text = (
-            "*//ـ إدخـال غـيـر مـعـروف ╎ 𝐔𝐍𝐊𝐍𝐎𝐖𝐍   𝐂𝐎𝐌𝐌𝐀𝐍𝐃*\n\n"
-            "\"البيانات العشوائية تسبب خللاً في النظام.\"\n"
-            "الرجاء استخدام لوحة التحكم بالأسفل للتنقل."
-        )
-        send_with_logo(message.chat.id, fallback_text)
 
 if __name__ == "__main__":
     print("STRUCTURE 01 IS SECURE AND ONLINE...")
