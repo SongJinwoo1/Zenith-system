@@ -10,22 +10,22 @@ load_dotenv()
 TOKEN = os.getenv("BOT_TOKEN")
 bot = telebot.TeleBot(TOKEN)
 
-# ─── 2. مـصـفـوفة الـهـوية الـبـصـريـة (𝐑𝐚𝐰   𝐔𝐑𝐋𝐬) ───
-# تم دمج رابط القيادة العليا الجديد IMG_4780
+# ─── 2. مـصـفـوفة الـهـوية الـبـصـريـة (المحدثة بـروابـطك الـجديدة) ───
+# تم تصحيح الروابط لتعمل مباشرة (Raw) داخل التلجرام
 SECTION_LOGOS = {
     "MAIN":      "https://raw.githubusercontent.com/SongJinwoo1/Structure-01/main/IMG_4782.jpeg",
-    "RECEPTION": "https://github.com/SongJinwoo1/Structure-01/blob/main/IMG_4789.jpeg",
-    "LOGIC":     "https://github.com/SongJinwoo1/Structure-01/blob/main/IMG_4790.jpeg",
+    "RECEPTION": "https://raw.githubusercontent.com/SongJinwoo1/Structure-01/main/IMG_4789.jpeg",
+    "LOGIC":     "https://raw.githubusercontent.com/SongJinwoo1/Structure-01/main/IMG_4790.jpeg",
     "SECURITY":  "https://raw.githubusercontent.com/SongJinwoo1/Structure-01/main/IMG_4791.jpeg",
     "ARCHIVE":   "https://raw.githubusercontent.com/SongJinwoo1/Structure-01/main/IMG_4792.jpeg",
     "CORE":      "https://raw.githubusercontent.com/SongJinwoo1/Structure-01/main/IMG_4794.jpeg",
-    "STRATEGY":  "https://github.com/SongJinwoo1/Structure-01/blob/main/IMG_4788.jpeg",
-    "VISUAL":    "https://github.com/SongJinwoo1/Structure-01/blob/main/IMG_4787.jpeg",
-    "COMMAND":   "https://raw.githubusercontent.com/SongJinwoo1/Structure-01/main/IMG_4780.jpeg" # رابط القيادة المحقون
+    "STRATEGY":  "https://raw.githubusercontent.com/SongJinwoo1/Structure-01/main/IMG_4788.jpeg",
+    "VISUAL":    "https://raw.githubusercontent.com/SongJinwoo1/Structure-01/main/IMG_4787.jpeg",
+    "COMMAND":   "https://raw.githubusercontent.com/SongJinwoo1/Structure-01/main/IMG_4780.jpeg"
 }
 
 # ─── 3. الـثـوابـت والـأزرار ───
-BTN_RECEPTION = '🤝 لـوحـة الـمـهـام ╎ 𝐐𝐔𝐄𝐒𝐓   𝐁𝐎𝐀𝐑𝐃'
+BTN_RECEPTION = '🤝 قـسـم الاسـتـقـبال ╎ 𝐑𝐄𝐂𝐄𝐏𝐓𝐈𝐎𝐍'
 BTN_LOGIC     = '🧠 مُـخـتـبـر الـمـنـطـق ╎ 𝐋𝐎𝐆𝐈𝐂   𝐋𝐀𝐁'
 BTN_SEC       = '🛡️ أمـن الـبـيـانـات ╎ 𝐒𝐄𝐂𝐔𝐑𝐈𝐓𝐘   𝐂𝐄𝐍𝐓𝐄𝐑'
 BTN_ARCHIVE   = '📂 الأرشــيــف ╎ 𝐓𝐇𝐄   𝐀𝐑𝐂𝐇𝐈𝐕𝐄'
@@ -39,7 +39,8 @@ def send_interface(chat_id, text, reply_markup=None, logo_key="MAIN"):
     photo_url = SECTION_LOGOS.get(logo_key, SECTION_LOGOS["MAIN"])
     try:
         bot.send_photo(chat_id, photo_url, caption=text, reply_markup=reply_markup, parse_mode='Markdown')
-    except:
+    except Exception as e:
+        print(f"Error sending photo: {e}")
         bot.send_message(chat_id, text, reply_markup=reply_markup, parse_mode='Markdown')
 
 # ─── 5. بـروتـوكـول الـتـرحـيـب (/start) ───
@@ -65,7 +66,12 @@ def handle_requests(message):
     txt = message.text
 
     if txt == BTN_RECEPTION:
-        send_interface(cid, "*//ـ لـوحـة الـمـهـام ╎ 𝐐𝐔𝐄𝐒𝐓   𝐁𝐎𝐀𝐑𝐃*", logo_key="RECEPTION")
+        msg = (
+            "*//ـ قـسـم الاسـتـقـبال ╎ 𝐑𝐄𝐂𝐄𝐏𝐓𝐈𝐎𝐍*\n\n"
+            "\"مرحباً بك في بوابـة أريـس تـك. السيادة تبدأ من هنا.\"\n\n"
+            "• [Welcome Gate](https://songjinwoo1.github.io/Bot-Song-Jin-Woo/)"
+        )
+        send_interface(cid, msg, logo_key="RECEPTION")
     elif txt == BTN_LOGIC:
         send_interface(cid, "*//ـ مُـخـتـبـر الـمـنـطـق ╎ 𝐋𝐎𝐆𝐈𝐂   𝐋𝐀𝐁*", logo_key="LOGIC")
     elif txt == BTN_SEC:
@@ -77,12 +83,12 @@ def handle_requests(message):
     elif txt == BTN_VISUAL:
         send_interface(cid, "*//ـ واجـهة الـنـظام ╎ 𝐕𝐈𝐒𝐔𝐀𝐋   𝐀𝐑𝐂𝐀𝐍𝐄*", logo_key="VISUAL")
     elif txt == BTN_STRATEGY:
-        tips = ["\"المنطق سلاح.\"", "\"تخلص من الثغرات العاطفية.\"", "\"السيادة لمن يملك البيانات.\""]
+        tips = ["\"المنطق سلاح.\"", "\"السيادة لمن يملك البيانات.\"", "\"الهدوء هو قمة القوة.\""]
         send_interface(cid, f"*//ـ غـرفـة الاسـتـشـارة ╎ 𝐒𝐓𝐑𝐀𝐓𝐄𝐆𝐘   𝐑𝐎𝐎𝐌*\n\n{random.choice(tips)}", logo_key="STRATEGY")
     elif txt == BTN_DEV:
         markup = types.InlineKeyboardMarkup()
         markup.add(types.InlineKeyboardButton("𝑺𝒐𝒏𝒈 𝑱𝒊𝒏 𝑾𝒐𝒐", url="https://wa.me/96597805334"))
-        markup.add(types.InlineKeyboardButton("𝙺𝚒𝚢𝚘𝚝𝚊𝚔𝚊 𝙰𝚢𝚊𝚗𝚘𝚔𝚘𝚞𝚓𝚒", url="https://wa.me/201055719273"))
+        markup.add(types.InlineKeyboardButton("𝙺𝚒𝚢𝚘𝚝𝚊𝚔𝚊 𝙰𝚢𝚊𝒏𝚘𝚔𝒐𝒖𝒋𝚒", url="https://wa.me/201055719273"))
         send_interface(cid, "*//ـ قـناة الاتـصال الـعـلـيا ╎ 𝐇𝐈𝐆𝐇   𝐂𝐎𝐌𝐌𝐀𝐍𝐃*", markup, logo_key="COMMAND")
 
 if __name__ == "__main__":
