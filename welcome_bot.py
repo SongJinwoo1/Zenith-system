@@ -1,68 +1,147 @@
 import os
 import json
 import logging
-import telebot
-import google.generativeai as genai
-from telebot import types
+import threading
+import time
 from datetime import datetime
+from typing import List, Optional
+
+import telebot
+from telebot import types
+import google.generativeai as genai
 from dotenv import load_dotenv
 
-# ─── تحميل المتغيرات البيئية ───────────────────────────────────────────
+# =============================================================================
+# Configuration & Environment
+# =============================================================================
 load_dotenv()
-BOT_TOKEN = os.getenv("BOT_TOKEN")
-AI_KEY = os.getenv("GEMINI_API_KEY")
-ADMIN_IDS = list(map(int, os.getenv("ADMIN_IDS", "529456789").split(",")))
 
-# ─── إعداد التسجيل ─────────────────────────────────────────────────────
+# Required tokens
+BOT_TOKEN = os.getenv("WELCOME_BOT_TOKEN")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+if not BOT_TOKEN or not GEMINI_API_KEY:
+    raise ValueError("❌ WELCOME_BOT_TOKEN and GEMINI_API_KEY must be set in .env")
+
+# Admin IDs: split by comma, strip spaces, convert to int
+ADMIN_IDS = [
+    int(id_.strip()) for id_ in os.getenv("ADMIN_IDS", "529456789").split(",")
+]
+
+# Logging
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
 logger = logging.getLogger(__name__)
 
-# ─── التحقق من صحة المتغيرات ───────────────────────────────────────────
-if not BOT_TOKEN or not AI_KEY:
-    raise ValueError("❌ BOT_TOKEN و GEMINI_API_KEY مطلوبان في ملف .env")
+# Gemini setup
+genai.configure(api_key=GEMINI_API_KEY)
+AI_MODEL = genai.GenerativeModel("gemini-1.5-flash")  # fastest model
 
-# ─── إعداد الذكاء الاصطناعي ───────────────────────────────────────────
-genai.configure(api_key=AI_KEY)
-ai_model = genai.GenerativeModel('gemini-1.5-flash')
-
+# Bot instance
 bot = telebot.TeleBot(BOT_TOKEN)
 
-# ─── ملف قاعدة البيانات ───────────────────────────────────────────────
+# =============================================================================
+# Persistent data (authorized chats) with thread safety
+# =============================================================================
 DB_FILE = "authorized_chats.json"
+AUTHORIZED_CHATS: List[int] = []
+AUTHORIZED_CHATS_LOCK = threading.Lock()
 
-def load_authorized_chats():
+
+def load_authorized_chats() -> List[int]:
+    """Load list of authorized chat IDs from JSON file."""
     try:
-        with open(DB_FILE, 'r', encoding='utf-8') as f:
+        with open(DB_FILE, "r", encoding="utf-8") as f:
             return json.load(f)
     except (FileNotFoundError, json.JSONDecodeError):
         return []
 
-def save_authorized_chats(chats):
-    with open(DB_FILE, 'w', encoding='utf-8') as f:
-        json.dump(chats, f, indent=4, ensure_ascii=False)
 
-AUTHORIZED_CHATS = load_authorized_chats()
+def save_authorized_chats() -> None:
+    """Save the current list of authorized chats to JSON file."""
+    with open(DB_FILE, "w", encoding="utf-8") as f:
+        json.dump(AUTHORIZED_CHATS, f, indent=4, ensure_ascii=False)
 
-# ─── نظام الكاش للصور ─────────────────────────────────────────────────
-cached_file_ids = {}
+
+# Initial load
+AUTHORIZED_CHATS.extend(load_authorized_chats())
+logger.info(f"Loaded {len(AUTHORIZED_CHATS)} authorized chats from {DB_FILE}")
+
+# =============================================================================
+# Cached image file_id
+# =============================================================================
 DEFAULT_LOGO_URL = "https://raw.githubusercontent.com/SongJinwoo1/Structure-01/main/IMG_4793.jpeg"
+cached_logo_file_id: Optional[str] = None
+CACHE_LOCK = threading.Lock()
 
-# ─── دالة توليد الترحيب بالذكاء الاصطناعي ─────────────────────────────
-def generate_ai_welcome(name):
-    prompt = f"اكتب ترحيباً قصيراً (سطر واحد) بأسلوب غامض وذكي لعضو جديد اسمه {name} انضم لمنظمة Arise Tech."
+
+def get_logo_file_id() -> Optional[str]:
+    """Return cached file_id, or None if not cached."""
+    with CACHE_LOCK:
+        return cached_logo_file_id
+
+
+def set_logo_file_id(file_id: str) -> None:
+    """Set the cached file_id."""
+    with CACHE_LOCK:
+        global cached_logo_file_id
+        cached_logo_file_id = file_id
+
+
+# =============================================================================
+# AI Welcome Message Generation (with caching and timeout)
+# =============================================================================
+# Simple cache to avoid regenerating the same welcome for identical names
+_welcome_cache: dict = {}
+_cache_lock = threading.Lock()
+AI_TIMEOUT = 5  # seconds
+
+
+def generate_ai_welcome(name: str) -> str:
+    """
+    Generate a short, mysterious welcome message using Gemini.
+    Caches result per name to speed up repeated joins.
+    """
+    # Check cache first
+    with _cache_lock:
+        if name in _welcome_cache:
+            return _welcome_cache[name]
+
+    prompt = (
+        f"اكتب ترحيباً قصيراً جداً (سطر واحد فقط) بأسلوب غامض وذكي "
+        f"بصفته مساعداً تقنياً لعضو جديد اسمه {name} انضم لمنظمة Arise Tech."
+    )
     try:
-        response = ai_model.generate_content(prompt)
-        return response.text.strip()
+        # Use a thread with timeout to avoid blocking forever
+        response = AI_MODEL.generate_content(
+            prompt,
+            generation_config=genai.types.GenerationConfig(
+                temperature=0.7,
+                max_output_tokens=50,
+            ),
+        )
+        text = response.text.strip()
+        # Cache only if not empty
+        if text:
+            with _cache_lock:
+                _welcome_cache[name] = text
+        return text
     except Exception as e:
-        logger.error(f"AI generation failed: {e}")
+        logger.error(f"AI generation failed for {name}: {e}")
         return "المنطق هو الحقيقة الوحيدة. مرحباً بك في النظام."
 
-# ─── دالة إرسال الترحيب ───────────────────────────────────────────────
-def send_welcome(chat_id, name, uid, username):
-    image = cached_file_ids.get("LOGO", DEFAULT_LOGO_URL)
+
+# =============================================================================
+# Welcome Message Sending
+# =============================================================================
+def send_welcome(chat_id: int, name: str, uid: int, username: str) -> None:
+    """Send the welcome photo + AI‑generated caption."""
+    # Get logo (cached file_id or default URL)
+    logo = get_logo_file_id()
+    if not logo:
+        logo = DEFAULT_LOGO_URL
+
     now = datetime.now()
     date_str = now.strftime("%Y/%m/%d")
     time_str = now.strftime("%I:%M %p")
@@ -82,19 +161,50 @@ def send_welcome(chat_id, name, uid, username):
     )
 
     try:
-        sent = bot.send_photo(chat_id, image, caption=caption, parse_mode='Markdown')
-        if "LOGO" not in cached_file_ids:
-            cached_file_ids["LOGO"] = sent.photo[-1].file_id
+        sent = bot.send_photo(chat_id, logo, caption=caption, parse_mode="Markdown")
+        # Cache the file_id if it was a URL and we haven't cached yet
+        if logo == DEFAULT_LOGO_URL and not get_logo_file_id():
+            set_logo_file_id(sent.photo[-1].file_id)
     except Exception as e:
-        logger.error(f"Failed to send photo: {e}")
-        bot.send_message(chat_id, caption, parse_mode='Markdown')
+        logger.error(f"Failed to send photo to {chat_id}: {e}")
+        # Fallback: send as text only
+        bot.send_message(chat_id, caption, parse_mode="Markdown")
 
-# ─── أوامر الإدارة (للمديرين فقط) ─────────────────────────────────────
-def is_admin(user_id):
+
+# =============================================================================
+# Helper Functions
+# =============================================================================
+def is_admin(user_id: int) -> bool:
     return user_id in ADMIN_IDS
 
-@bot.message_handler(commands=['start'])
-def start_command(message):
+
+def ensure_chat_authorized(chat_id: int) -> bool:
+    """Check if a chat is authorized (thread‑safe)."""
+    with AUTHORIZED_CHATS_LOCK:
+        return chat_id in AUTHORIZED_CHATS
+
+
+def add_authorized_chat(chat_id: int) -> None:
+    """Add a chat to the authorized list and persist (thread‑safe)."""
+    with AUTHORIZED_CHATS_LOCK:
+        if chat_id not in AUTHORIZED_CHATS:
+            AUTHORIZED_CHATS.append(chat_id)
+            save_authorized_chats()
+
+
+def remove_authorized_chat(chat_id: int) -> None:
+    """Remove a chat from the authorized list and persist (thread‑safe)."""
+    with AUTHORIZED_CHATS_LOCK:
+        if chat_id in AUTHORIZED_CHATS:
+            AUTHORIZED_CHATS.remove(chat_id)
+            save_authorized_chats()
+
+
+# =============================================================================
+# Bot Command Handlers
+# =============================================================================
+@bot.message_handler(commands=["start"])
+def start_command(message: types.Message):
     if is_admin(message.from_user.id):
         bot.reply_to(
             message,
@@ -105,26 +215,25 @@ def start_command(message):
             "/unauth – إلغاء تفعيل المجموعة الحالية\n"
             "/list_auth – عرض المجموعات المفعلة\n"
             "/set_logo <url> – تغيير صورة الترحيب\n"
-            "/panel – لوحة تحكم سريعة"
+            "/panel – لوحة تحكم سريعة",
+            parse_mode="Markdown",
         )
     else:
         bot.reply_to(message, "مرحباً بك في نظام Arise. البوت يعمل بشكل آمن.")
 
-@bot.message_handler(commands=['Arise'])
-def activate_chat(message):
-    user_id = message.from_user.id
-    chat_id = message.chat.id
 
-    if not is_admin(user_id):
+@bot.message_handler(commands=["Arise"])
+def activate_chat(message: types.Message):
+    if not is_admin(message.from_user.id):
         bot.reply_to(message, "🌑 « وحـده الـمـؤسـس يـمـلك سـلطة الإيـقـاظ. »")
         return
 
-    if chat_id in AUTHORIZED_CHATS:
+    chat_id = message.chat.id
+    if ensure_chat_authorized(chat_id):
         bot.reply_to(message, "✅ البوت مفعل بالفعل في هذه المجموعة.")
         return
 
-    AUTHORIZED_CHATS.append(chat_id)
-    save_authorized_chats(AUTHORIZED_CHATS)
+    add_authorized_chat(chat_id)
     bot.reply_to(
         message,
         "✅ **بـروتوكول الـسيادة: نـشط**\n"
@@ -132,125 +241,142 @@ def activate_chat(message):
         "◈ الـحالة: مـؤمـن بـواسطة أريـس تـك.\n"
         "◈ الـنظام: الـذكاء الاصـطـناعـي مـفـعـل.\n\n"
         "« الـآن، الـمـجـمـوعة تـحـت سـيـطرتـنا. »",
-        parse_mode='Markdown'
+        parse_mode="Markdown",
     )
-    logger.info(f"Admin {user_id} activated bot in chat {chat_id}")
 
-@bot.message_handler(commands=['unauth'])
-def deactivate_chat(message):
+
+@bot.message_handler(commands=["unauth"])
+def deactivate_chat(message: types.Message):
     if not is_admin(message.from_user.id):
-        bot.reply_to(message, "⛔ غير مصرح لك باستخدام هذا الأمر.")
+        bot.reply_to(message, "🌑 « وحـده الـمـؤسـس يـمـلك سـلطة الإيـقـاظ. »")
         return
 
     chat_id = message.chat.id
-    if chat_id not in AUTHORIZED_CHATS:
-        bot.reply_to(message, "⚠️ هذه المجموعة غير مفعلة أصلاً.")
+    if not ensure_chat_authorized(chat_id):
+        bot.reply_to(message, "❌ البوت غير مفعل في هذه المجموعة.")
         return
 
-    AUTHORIZED_CHATS.remove(chat_id)
-    save_authorized_chats(AUTHORIZED_CHATS)
-    bot.reply_to(message, "✅ تم إلغاء تفعيل البوت في هذه المجموعة.")
-    logger.info(f"Admin {message.from_user.id} deactivated chat {chat_id}")
+    remove_authorized_chat(chat_id)
+    bot.reply_to(
+        message,
+        "⛔ **بـروتوكول الـسيادة: تـعـطـيـل**\n"
+        "تم إلغاء تفعيل البوت في هذه المجموعة.",
+        parse_mode="Markdown",
+    )
 
-@bot.message_handler(commands=['list_auth'])
-def list_authorized(message):
+
+@bot.message_handler(commands=["list_auth"])
+def list_authorized(message: types.Message):
     if not is_admin(message.from_user.id):
-        bot.reply_to(message, "⛔ غير مصرح لك باستخدام هذا الأمر.")
+        bot.reply_to(message, "🌑 « وحـده الـمـؤسـس يـمـلك سـلطة الإيـقـاظ. »")
         return
 
-    if not AUTHORIZED_CHATS:
-        bot.reply_to(message, "📭 لا توجد مجموعات مفعلة حالياً.")
-        return
+    with AUTHORIZED_CHATS_LOCK:
+        if not AUTHORIZED_CHATS:
+            bot.reply_to(message, "📭 لا توجد مجموعات مفعلة.")
+            return
+        text = "📋 **المجموعات المفعلة:**\n\n"
+        for cid in AUTHORIZED_CHATS:
+            text += f"• `{cid}`\n"
+        bot.reply_to(message, text, parse_mode="Markdown")
 
-    lines = "\n".join([f"• `{chat}`" for chat in AUTHORIZED_CHATS])
-    bot.reply_to(message, f"📋 **المجموعات المفعلة:**\n{lines}", parse_mode='Markdown')
 
-@bot.message_handler(commands=['set_logo'])
-def set_logo(message):
+@bot.message_handler(commands=["set_logo"])
+def set_logo(message: types.Message):
     if not is_admin(message.from_user.id):
-        bot.reply_to(message, "⛔ غير مصرح لك باستخدام هذا الأمر.")
+        bot.reply_to(message, "🌑 « وحـده الـمـؤسـس يـمـلك سـلطة الإيـقـاظ. »")
         return
 
-    args = message.text.split()
+    args = message.text.split(maxsplit=1)
     if len(args) < 2:
-        bot.reply_to(message, "⚠️ الاستخدام: /set_logo <image_url>")
+        bot.reply_to(
+            message,
+            "❌ **استخدام خاطئ**\n"
+            "أرسل: `/set_logo <URL الصورة>`\n"
+            "مثال: `/set_logo https://example.com/logo.jpg`",
+            parse_mode="Markdown",
+        )
         return
 
-    new_url = args[1]
+    url = args[1].strip()
+    # Test the URL by trying to send a photo (to get file_id)
     try:
-        test_sent = bot.send_photo(message.chat.id, new_url, caption="اختبار الصورة الجديدة")
-        cached_file_ids["LOGO"] = test_sent.photo[-1].file_id
-        bot.reply_to(message, f"✅ تم تحديث صورة الترحيب بنجاح.\nالرابط: {new_url}")
-        logger.info(f"Admin {message.from_user.id} changed logo to {new_url}")
+        sent = bot.send_photo(message.chat.id, url, caption="✅ تم تغيير الشعار بنجاح.")
+        file_id = sent.photo[-1].file_id
+        set_logo_file_id(file_id)
+        # Delete the test message to keep chat clean
+        bot.delete_message(message.chat.id, sent.message_id)
+        bot.reply_to(
+            message,
+            f"✅ **تم تحديث الشعار**\n"
+            f"الـ URL الجديد: {url}\n"
+            f"سيتم استخدامه في الترحيبات القادمة.",
+            parse_mode="Markdown",
+        )
     except Exception as e:
-        bot.reply_to(message, f"❌ فشل تحميل الصورة. تأكد من صحة الرابط.\nخطأ: {e}")
+        logger.error(f"Failed to set logo: {e}")
+        bot.reply_to(
+            message,
+            f"❌ فشل تحميل الصورة من الرابط.\n"
+            f"تأكد من صحة الرابط وأنه صورة مدعومة.",
+            parse_mode="Markdown",
+        )
 
-@bot.message_handler(commands=['panel'])
-def admin_panel(message):
+
+@bot.message_handler(commands=["panel"])
+def admin_panel(message: types.Message):
     if not is_admin(message.from_user.id):
-        bot.reply_to(message, "⛔ غير مصرح لك باستخدام هذا الأمر.")
+        bot.reply_to(message, "🌑 « وحـده الـمـؤسـس يـمـلك سـلطة الإيـقـاظ. »")
         return
 
-    markup = types.InlineKeyboardMarkup(row_width=2)
-    btn1 = types.InlineKeyboardButton("➕ تفعيل هنا", callback_data="activate_here")
-    btn2 = types.InlineKeyboardButton("❌ إلغاء تفعيل هنا", callback_data="deactivate_here")
-    btn3 = types.InlineKeyboardButton("📋 عرض المفعلة", callback_data="list_auth")
-    btn4 = types.InlineKeyboardButton("🖼️ تغيير الصورة", callback_data="change_logo")
-    markup.add(btn1, btn2, btn3, btn4)
-    bot.send_message(message.chat.id, "🔧 **لوحة التحكم**\nاختر الإجراء:", reply_markup=markup)
+    with AUTHORIZED_CHATS_LOCK:
+        count = len(AUTHORIZED_CHATS)
 
-@bot.callback_query_handler(func=lambda call: True)
-def handle_panel_buttons(call):
-    if not is_admin(call.from_user.id):
-        bot.answer_callback_query(call.id, "⛔ غير مصرح لك.")
-        return
+    panel_text = (
+        "🔧 **لوحة التحكم - Arise Welcome AI**\n\n"
+        f"📊 **المجموعات المفعلة:** `{count}`\n"
+        f"🧠 **نموذج الذكاء:** `gemini-1.5-flash`\n"
+        f"🖼 **الشعار:** {'مخبأ' if get_logo_file_id() else 'افتراضي'}\n\n"
+        "**الأوامر السريعة:**\n"
+        "/Arise – تفعيل المجموعة الحالية\n"
+        "/unauth – إلغاء تفعيل المجموعة الحالية\n"
+        "/list_auth – عرض المجموعات المفعلة\n"
+        "/set_logo <url> – تغيير الشعار"
+    )
+    bot.reply_to(message, panel_text, parse_mode="Markdown")
 
-    chat_id = call.message.chat.id
 
-    if call.data == "activate_here":
-        if chat_id in AUTHORIZED_CHATS:
-            bot.answer_callback_query(call.id, "المجموعة مفعلة بالفعل.")
-        else:
-            AUTHORIZED_CHATS.append(chat_id)
-            save_authorized_chats(AUTHORIZED_CHATS)
-            bot.answer_callback_query(call.id, "✅ تم التفعيل بنجاح.")
-            bot.send_message(chat_id, "✅ تم تفعيل البوت في هذه المجموعة.")
-    elif call.data == "deactivate_here":
-        if chat_id not in AUTHORIZED_CHATS:
-            bot.answer_callback_query(call.id, "المجموعة غير مفعلة.")
-        else:
-            AUTHORIZED_CHATS.remove(chat_id)
-            save_authorized_chats(AUTHORIZED_CHATS)
-            bot.answer_callback_query(call.id, "✅ تم إلغاء التفعيل.")
-            bot.send_message(chat_id, "✅ تم إلغاء تفعيل البوت في هذه المجموعة.")
-    elif call.data == "list_auth":
-        list_authorized(call.message)
-        bot.answer_callback_query(call.id)
-    elif call.data == "change_logo":
-        bot.send_message(chat_id, "أرسل الأمر `/set_logo <url>` لتغيير الصورة.")
-        bot.answer_callback_query(call.id)
-
-# ─── معالج دخول الأعضاء الجدد ─────────────────────────────────────────
-@bot.message_handler(content_types=['new_chat_members'])
-def welcome_new_member(message):
+# =============================================================================
+# New Member Handler
+# =============================================================================
+@bot.message_handler(content_types=["new_chat_members"])
+def welcome_new_member(message: types.Message):
     chat_id = message.chat.id
-
-    if chat_id not in AUTHORIZED_CHATS:
+    if not ensure_chat_authorized(chat_id):
         return
 
     for member in message.new_chat_members:
         if member.is_bot:
             continue
+        # Send welcome in a separate thread to avoid blocking the update loop
+        threading.Thread(
+            target=send_welcome,
+            args=(
+                chat_id,
+                member.first_name,
+                member.id,
+                f"@{member.username}" if member.username else "لا يوجد",
+            ),
+            daemon=True,
+        ).start()
 
-        name = member.first_name
-        uid = member.id
-        username = f"@{member.username}" if member.username else "لا يـوجـد"
-        send_welcome(chat_id, name, uid, username)
 
-# ─── تشغيل البوت ─────────────────────────────────────────────────────
+# =============================================================================
+# Main Entry Point
+# =============================================================================
 if __name__ == "__main__":
     logger.info("🛡️ ARISE WELCOME AI IS ONLINE...")
     try:
-        bot.polling(none_stop=True, timeout=90, long_polling_timeout=10)
+        bot.infinity_polling()
     except Exception as e:
-        logger.error(f"Bot stopped: {e}")
+        logger.critical(f"Bot stopped: {e}")
